@@ -1,0 +1,428 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>boogio.aws_auditor package &mdash; boogio 1.0.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="boogio 1.0.0 documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> boogio
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="boogio.aws_informer.html"> aws_informer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="boogio.aws_surveyor.html"> aws_surveyor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="boogio.aws_reporter.html"> aws_reporter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="boogio.sqs_sifter.html"> sqs_sifter</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">boogio</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>boogio.aws_auditor package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/boogio.aws_auditor.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-boogio.aws_auditor">
+<span id="boogio-aws-auditor-package"></span><h1>boogio.aws_auditor package<a class="headerlink" href="#module-boogio.aws_auditor" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-boogio.aws_auditor.audit_diff">
+<span id="boogio-aws-auditor-audit-diff-module"></span><h2>boogio.aws_auditor.audit_diff module<a class="headerlink" href="#module-boogio.aws_auditor.audit_diff" title="Permalink to this headline">¶</a></h2>
+<p>audit_diff.py</p>
+<p>Find differences between aws_auditor results.</p>
+<dl class="class">
+<dt id="boogio.aws_auditor.audit_diff.AuditDiff">
+<em class="property">class </em><code class="descclassname">boogio.aws_auditor.audit_diff.</code><code class="descname">AuditDiff</code><span class="sig-paren">(</span><em>baseline=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_auditor/audit_diff.html#AuditDiff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_auditor.audit_diff.AuditDiff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Calculate and manage audit differences.</p>
+<dl class="method">
+<dt id="boogio.aws_auditor.audit_diff.AuditDiff.added">
+<code class="descname">added</code><span class="sig-paren">(</span><em>audit0</em>, <em>audit1=None</em>, <em>uid=None</em>, <em>require_unique=True</em>, <em>ignore=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_auditor/audit_diff.html#AuditDiff.added"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_auditor.audit_diff.AuditDiff.added" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find records in audit1 that aren&#8217;t in audit0.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_auditor.audit_diff.AuditDiff.changed">
+<code class="descname">changed</code><span class="sig-paren">(</span><em>audit0</em>, <em>audit1=None</em>, <em>uid=None</em>, <em>require_unique=True</em>, <em>ignore=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_auditor/audit_diff.html#AuditDiff.changed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_auditor.audit_diff.AuditDiff.changed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find records in both audit0 and audit1 that changed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_auditor.audit_diff.AuditDiff.compare">
+<code class="descname">compare</code><span class="sig-paren">(</span><em>audit0</em>, <em>audit1=None</em>, <em>uid=None</em>, <em>require_unique=True</em>, <em>ignore=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_auditor/audit_diff.html#AuditDiff.compare"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_auditor.audit_diff.AuditDiff.compare" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate differences between two audit reports.</p>
+<p>Parameters:</p>
+<dl class="docutils">
+<dt>audit0, audit1 &#8211; The two audit reports to compare. These should</dt>
+<dd><p class="first">be lists of dicts, and each dict should be flat in the sense
+of the flatten package. These may also be the paths to json
+files defining such dicts.</p>
+<p class="last">If audit1 is None, self.baseline will be used for audit0 and
+the audit report passed as audit0 will be used for audit1.</p>
+</dd>
+<dt>uid &#8211; A list of keys that should be considered to identify an</dt>
+<dd>audit record as representing a unique entity.</dd>
+<dt>require_unique &#8211; Whether multiple records with the same uid</dt>
+<dd>values are allowed. If set to True, an exception will be
+raised if more than one record with the same values for the
+keys in uid occurs in the same audit report.</dd>
+<dt>ignore &#8211; A list of keys, differences in whose values won&#8217;t be</dt>
+<dd>considered in determining if records have changed.</dd>
+</dl>
+<p>Records will be &#8220;expected&#8221; the same if they have the same
+values for the keys listed in uid. Differences in the values
+for other keys will be reported. Any uid value combinations
+not appearing in both audits will be reported as additions or
+deletions depending on the audit in which they appear.</p>
+<p>Return Value:</p>
+<dl class="docutils">
+<dt>compare() returns a dict with three elements:</dt>
+<dd>{
+&#8216;uid&#8217;: uid,
+&#8216;key_diff&#8217;: key_diff,
+&#8216;record_diff&#8217;: record_diff
+}</dd>
+</dl>
+<p>uid &#8211; the uid passed in to compare().</p>
+<dl class="docutils">
+<dt>key_diff &#8211; a pair [audit0_uniq_keys, audit1_uniq_keys], where</dt>
+<dd>each element is a list of the keys that occur in the indicated
+audit but not the other.</dd>
+<dt>record_diff &#8211; a list of all pairs [audit0_item, audit1_item] where</dt>
+<dd>audit0_item and audit1_item have the same values for all of the
+keys in uid but differ in some other value. Values for keys in
+key_diff aren&#8217;t considered when calculating record_diff, but
+audit items differeing in their common keys will be included.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_auditor.audit_diff.AuditDiff.deleted">
+<code class="descname">deleted</code><span class="sig-paren">(</span><em>audit0</em>, <em>audit1=None</em>, <em>uid=None</em>, <em>require_unique=True</em>, <em>ignore=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_auditor/audit_diff.html#AuditDiff.deleted"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_auditor.audit_diff.AuditDiff.deleted" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find records in audit0 that aren&#8217;t in audit1.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="boogio.aws_auditor.audit_diff.DuplicateRecordError">
+<em class="property">exception </em><code class="descclassname">boogio.aws_auditor.audit_diff.</code><code class="descname">DuplicateRecordError</code><a class="reference internal" href="_modules/boogio/aws_auditor/audit_diff.html#DuplicateRecordError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_auditor.audit_diff.DuplicateRecordError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+<p>The same uid values unexpectedly occurred in more than one record in
+an audit report.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.aws_auditor.audit_diff.index_by_keys">
+<code class="descclassname">boogio.aws_auditor.audit_diff.</code><code class="descname">index_by_keys</code><span class="sig-paren">(</span><em>audit</em>, <em>keys</em>, <em>require_unique=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_auditor/audit_diff.html#index_by_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_auditor.audit_diff.index_by_keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dict indexing an audit report by a list of keys, and a
+list of all keys found in any entry in the audit report.</p>
+<p>The value for each item in the index returned is a list of all
+items in the audit report with values for the key fields matching
+the values used to construct the key for that index item.</p>
+<p>If require_unique is True and index_by_keys doesn&#8217;t raise an
+exception, the values list for each item in the index returned
+will be of length one.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-boogio.aws_auditor.auditor">
+<span id="boogio-aws-auditor-auditor-module"></span><h2>boogio.aws_auditor.auditor module<a class="headerlink" href="#module-boogio.aws_auditor.auditor" title="Permalink to this headline">¶</a></h2>
+<p>auditor.py</p>
+<p>Run AWS Security audit data collection and update audit archives.</p>
+<dl class="class">
+<dt id="boogio.aws_auditor.auditor.AWSAuditManager">
+<em class="property">class </em><code class="descclassname">boogio.aws_auditor.auditor.</code><code class="descname">AWSAuditManager</code><span class="sig-paren">(</span><em>output_directory</em>, <em>add_timestamp=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_auditor/auditor.html#AWSAuditManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_auditor.auditor.AWSAuditManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Manage running audits and creating output files.</p>
+<dl class="attribute">
+<dt id="boogio.aws_auditor.auditor.AWSAuditManager.DEFAULT_FILENAME">
+<code class="descname">DEFAULT_FILENAME</code><em class="property"> = 'audit'</em><a class="headerlink" href="#boogio.aws_auditor.auditor.AWSAuditManager.DEFAULT_FILENAME" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_auditor.auditor.AWSAuditManager.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>command</em>, <em>filename=None</em>, <em>filesuffix=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_auditor/auditor.html#AWSAuditManager.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_auditor.auditor.AWSAuditManager.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run command, placing output in the appropriate output file.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-boogio.aws_auditor.cleaner">
+<span id="boogio-aws-auditor-cleaner-module"></span><h2>boogio.aws_auditor.cleaner module<a class="headerlink" href="#module-boogio.aws_auditor.cleaner" title="Permalink to this headline">¶</a></h2>
+<p>cleaner.py</p>
+<p>Housekeeping for interim archives for aws audit reports.</p>
+<dl class="class">
+<dt id="boogio.aws_auditor.cleaner.Cleaner">
+<em class="property">class </em><code class="descclassname">boogio.aws_auditor.cleaner.</code><code class="descname">Cleaner</code><span class="sig-paren">(</span><em>config</em>, <em>*default_periods</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_auditor/cleaner.html#Cleaner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_auditor.cleaner.Cleaner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Remove timestamped files meeting specified criteria.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.aws_auditor.cleaner.argument_parser">
+<code class="descclassname">boogio.aws_auditor.cleaner.</code><code class="descname">argument_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_auditor/cleaner.html#argument_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_auditor.cleaner.argument_parser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="boogio.aws_auditor.cleaner.main">
+<code class="descclassname">boogio.aws_auditor.cleaner.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_auditor/cleaner.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_auditor.cleaner.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-boogio.aws_auditor.cleanup">
+<span id="boogio-aws-auditor-cleanup-module"></span><h2>boogio.aws_auditor.cleanup module<a class="headerlink" href="#module-boogio.aws_auditor.cleanup" title="Permalink to this headline">¶</a></h2>
+<p>cleanup.py</p>
+<p>Clean up selected files in a directory based on filename timestamp and
+selected cleanup period.</p>
+<p>All files older than the start of the previous cleanup period will be
+deleted, unless their timestamp is the earliest in their cleanup
+period.</p>
+<p>For example, if the cleanup period is &#8216;hour&#8217;, and the current time is
+0420, all files whose timestamp is earlier than 0300 will be deleted
+except for the files whose timestamps are closest to the start of the
+hour in which they fall.</p>
+<p>If the timestamps are at 0216, 0230, 0245, 0255, 0315, 0330, 0340,
+0402 and 0414, an 0420 &#8216;hour&#8217; cleanup will remove the files with
+timestamps 0230, 0245 and 0255, leaving 0216, 0315, 0330, 0340, 0402
+and 0414. Any additional cleanups before 0500 won&#8217;t remove any more
+files. A subsequent 0500 cleanup will remove 0330 and 0340, leaving
+0216, 0315, 0402 and 0414.</p>
+<p>Summarizing, if the file timestamps in each hour are as follows:</p>
+<blockquote>
+<div>02xx:   0216, 0230, 0245, 0255
+03xx:   0315, 0330, 0340
+04xx:   0402, 0414</div></blockquote>
+<p>an &#8216;hour&#8217; cleanup in the 04xx hour window will remove all but the
+earliest file in the 02xx window and any earlier window.</p>
+<dl class="function">
+<dt id="boogio.aws_auditor.cleanup.argument_parser">
+<code class="descclassname">boogio.aws_auditor.cleanup.</code><code class="descname">argument_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_auditor/cleanup.html#argument_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_auditor.cleanup.argument_parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a parser for command line arguments.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.aws_auditor.cleanup.get_current_reports">
+<code class="descclassname">boogio.aws_auditor.cleanup.</code><code class="descname">get_current_reports</code><span class="sig-paren">(</span><em>report_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_auditor/cleanup.html#get_current_reports"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_auditor.cleanup.get_current_reports" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get filenames of current report files in directory report_dir.</p>
+<p>Parameters:
+report_dir &#8211; the directory containing potentially cleanable files.</p>
+<p>Returns:
+A list of filenames.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.aws_auditor.cleanup.insert_timestamp">
+<code class="descclassname">boogio.aws_auditor.cleanup.</code><code class="descname">insert_timestamp</code><span class="sig-paren">(</span><em>string</em>, <em>datetime</em>, <em>prefix=None</em>, <em>suffix=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_auditor/cleanup.html#insert_timestamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_auditor.cleanup.insert_timestamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if a timestamp falls into the &#8220;removable&#8221; category.</p>
+<p>Parameters:</p>
+<p>string &#8211; The string into which to insert a timestamp.</p>
+<p>datetime &#8211; A datetime object representing the time to timestamp.</p>
+<dl class="docutils">
+<dt>prefix &#8211; A string or regex representing an initial portion of</dt>
+<dd>the string after which to insert the timestamp.</dd>
+<dt>suffix &#8211; A string or regex representing a terminal portion of</dt>
+<dd>the string after which to insert the timestamp.</dd>
+</dl>
+<p>Returns:
+The string resulting from inserting the timestamp as described below.</p>
+<p>If both prefix and suffix are None, the timestamp will be appended
+to string.</p>
+<p>If both prefix and suffix match initial and terminal substrings of
+string, the timestamp will be sandwiched between them. This can
+result in duplication of any middle part of string that is picked
+up in both prefix and suffix.</p>
+<p>If either of prefix or suffix is not None and fails to match the
+corresponding segment of string, insert_timestamp will raise a
+ValueError.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.aws_auditor.cleanup.main">
+<code class="descclassname">boogio.aws_auditor.cleanup.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_auditor/cleanup.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_auditor.cleanup.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main entry point.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.aws_auditor.cleanup.timestamp_is_stale">
+<code class="descclassname">boogio.aws_auditor.cleanup.</code><code class="descname">timestamp_is_stale</code><span class="sig-paren">(</span><em>timestamp</em>, <em>ref_time</em>, <em>period</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_auditor/cleanup.html#timestamp_is_stale"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_auditor.cleanup.timestamp_is_stale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if a timestamp falls into the &#8220;removable&#8221; category.</p>
+<p>Parameters:
+timestamp &#8211; The timestamp to be checked.
+ref_time &#8211; The time against which to measure timestamps, in seconds.
+period &#8211; &#8216;hour&#8217;, &#8216;day&#8217; or &#8216;week&#8217;.</p>
+<p>Returns:
+True or False, indicating whether the timestamp is stale.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Scott Brown.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

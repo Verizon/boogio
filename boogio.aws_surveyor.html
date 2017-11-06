@@ -1,0 +1,936 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>boogio.aws_surveyor module &mdash; boogio 1.0.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="boogio 1.0.0 documentation" href="index.html"/>
+        <link rel="next" title="boogio.aws_reporter module" href="boogio.aws_reporter.html"/>
+        <link rel="prev" title="boogio.aws_informer module" href="boogio.aws_informer.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> boogio
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="boogio.aws_informer.html"> aws_informer</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#"> aws_surveyor</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#awssurveyor-initialization">AWSSurveyor Initialization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-files">Configuration Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#updating-awssurveyor-configuration">Updating AWSSurveyor Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#executing-surveys">Executing Surveys</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="boogio.aws_reporter.html"> aws_reporter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="boogio.sqs_sifter.html"> sqs_sifter</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">boogio</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>boogio.aws_surveyor module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/boogio.aws_surveyor.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-boogio.aws_surveyor">
+<span id="boogio-aws-surveyor-module"></span><h1>boogio.aws_surveyor module<a class="headerlink" href="#module-boogio.aws_surveyor" title="Permalink to this headline">¶</a></h1>
+<p>Manage sets of <code class="docutils literal"><span class="pre">AWSInformer</span></code> instances across accounts and regions.</p>
+<p>An <code class="docutils literal"><span class="pre">AWSSurveyor</span></code> instance manages AWSMediator and <code class="docutils literal"><span class="pre">AWSInformer</span></code>
+instances across multiple profiles and regions.</p>
+<p>Use <code class="docutils literal"><span class="pre">AWSSurveyor</span></code> instances with a workflow like the following.</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Initialize an <code class="docutils literal"><span class="pre">AWSSurveyor</span></code> instance, defining values for
+profiles, regions and entity types if desired.</li>
+<li>Use <code class="docutils literal"><span class="pre">AWSSurveyor.survey()</span></code> to retrieve records from AWS and
+create <code class="docutils literal"><span class="pre">AWSInformer</span></code> instances to manage them. You can use
+the existing presets for profiles, regions and entity types,
+update the presets, or specify survey-specific values.</li>
+<li>Use <code class="docutils literal"><span class="pre">AWSSurveyor.informers()</span></code> to retrieve informers from the
+surveyor for further use.</li>
+</ol>
+</div></blockquote>
+<div class="section" id="awssurveyor-initialization">
+<span id="aws-surveyor-initialization-package-label"></span><h2>AWSSurveyor Initialization<a class="headerlink" href="#awssurveyor-initialization" title="Permalink to this headline">¶</a></h2>
+<p>An <code class="docutils literal"><span class="pre">AWSSurveyor</span></code> maintains preset lists of the profiles, regions and
+entity types that will be used by default when <code class="docutils literal"><span class="pre">survey()</span></code> is called.
+These preset values can be assigned when a surveyor is created and can
+be updated afterwards. Common preset values can be saved in
+configuration files as blocks of JSON such as the following.</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;profiles&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;some_profile&quot;</span><span class="p">,</span> <span class="s2">&quot;another_profile&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;regions&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">,</span> <span class="s2">&quot;us-west-1&quot;</span><span class="p">,</span> <span class="s2">&quot;us-west-2&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;entity_types&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ec2&quot;</span><span class="p">,</span> <span class="s2">&quot;security_group&quot;</span><span class="p">,</span> <span class="s2">&quot;subnet&quot;</span><span class="p">,</span> <span class="s2">&quot;vpc&quot;</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>If no presets are provided when an <code class="docutils literal"><span class="pre">AWSSurveyor</span></code> instance is created
+and <code class="file docutils literal"><span class="pre">$HOME/.aws/aws_surveyor.cfg`</span></code> exists, it will be parsed as
+a JSON file to determine presets.</p>
+<p>To read from another configuration file, pass the local or absolute
+path to the file as the value of the <code class="docutils literal"><span class="pre">config_path</span></code> initialization
+argument.</p>
+<p>To suppress reading of preset values from
+<code class="file docutils literal"><span class="pre">$HOME/.aws/aws_surveyor.cfg`</span></code>, pass an empty string as the
+value of the <code class="docutils literal"><span class="pre">config_path</span></code> argument at initialization.</p>
+<blockquote>
+<div><p><strong>Examples</strong></p>
+<ul>
+<li><p class="first">Initialize presets from <code class="file docutils literal"><span class="pre">$HOME/.aws/aws_surveyor.cfg</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span> <span class="o">=</span> <span class="n">AWSSurveyor</span><span class="p">()</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Initialize presets from <code class="file docutils literal"><span class="pre">aws_surveyor.cfg</span></code> in the
+current working directory:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span> <span class="o">=</span> <span class="n">AWSSurveyor</span><span class="p">(</span><span class="n">config_path</span><span class="o">=</span><span class="s1">&#39;aws_surveyor.cfg&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Don&#8217;t read any configuration file at initialization, even if
+the default configuration file
+<code class="file docutils literal"><span class="pre">$HOME/.aws/aws_surveyor.cfg</span></code> exists:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span> <span class="o">=</span> <span class="n">AWSSurveyor</span><span class="p">(</span><span class="n">config_path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div></blockquote>
+<p>You can also configure any of the <code class="docutils literal"><span class="pre">profiles</span></code>, <code class="docutils literal"><span class="pre">regions</span></code> and
+<code class="docutils literal"><span class="pre">entity_types</span></code> presets individually via initialization arguments.
+Any values for these presets that would otherwise be read from a
+configuration file will be overwritten by initialization arguments. To
+add to, rather than overwriting, configuration file presets set the
+<code class="docutils literal"><span class="pre">add_to_config</span></code> argument to <code class="docutils literal"><span class="pre">True</span></code>.</p>
+<blockquote>
+<div><p><strong>Examples</strong></p>
+<ul>
+<li><p class="first">Define <code class="docutils literal"><span class="pre">profiles</span></code>, <code class="docutils literal"><span class="pre">regions</span></code> and <code class="docutils literal"><span class="pre">entity_types</span></code> presets
+at initialization, overriding any of their presets defined in
+<code class="file docutils literal"><span class="pre">$HOME/.aws/aws_surveyor.cfg</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span> <span class="o">=</span> <span class="n">AWSSurveyor</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">profiles</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;some_profile&#39;</span><span class="p">,</span> <span class="s1">&#39;another_profile&#39;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">regions</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;us-east-1&#39;</span><span class="p">,</span> <span class="s1">&#39;us-west-1&#39;</span><span class="p">,</span> <span class="s1">&#39;us-west-2&#39;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">entity_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ec2&#39;</span><span class="p">,</span> <span class="s1">&#39;security_group&#39;</span><span class="p">,</span> <span class="s1">&#39;subnet&#39;</span><span class="p">,</span> <span class="s1">&#39;vpc&#39;</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="p">)</span>
+</pre></div>
+</div>
+<p>Examine the <code class="docutils literal"><span class="pre">presets</span></code> property to see the current presets:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">presets</span>
+<span class="go">{&#39;profiles&#39;: [&#39;some_profile&#39;, &#39;another_profile&#39;], &#39;regions&#39;: [</span>
+<span class="go">&#39;us-east-1&#39;, &#39;us-west-1&#39;, &#39;us-west-2&#39;], &#39;entity_types&#39;: [&#39;ec2&#39;,</span>
+<span class="go">&#39;security_group&#39;, &#39;subnet&#39;, &#39;vpc&#39;]}</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Define the <code class="docutils literal"><span class="pre">entity_types</span></code> preset at initialization, overriding
+the <code class="docutils literal"><span class="pre">entity_types</span></code> preset if one is defined in the default
+configuration file <code class="file docutils literal"><span class="pre">$HOME/.aws/aws_surveyor.cfg</span></code>. This
+will still use the default configuration file presets for
+<code class="docutils literal"><span class="pre">profiles</span></code> and <code class="docutils literal"><span class="pre">regions</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span> <span class="o">=</span> <span class="n">AWSSurveyor</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">entity_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ec2&#39;</span><span class="p">,</span> <span class="s1">&#39;security_group&#39;</span><span class="p">,</span> <span class="s1">&#39;subnet&#39;</span><span class="p">,</span> <span class="s1">&#39;vpc&#39;</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Read the presets for <code class="docutils literal"><span class="pre">profiles</span></code>, <code class="docutils literal"><span class="pre">regions</span></code> and
+<code class="docutils literal"><span class="pre">entity_types</span></code> from the specified configuration file, and
+add an additional &#8220;elb&#8221; entity type preset:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span> <span class="o">=</span> <span class="n">AWSSurveyor</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">entity_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;elb&#39;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">config_path</span><span class="o">=</span><span class="s1">&#39;my_aws_surveyor.cfg&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">add_to_config_path</span><span class="o">=</span><span class="kc">True</span>
+<span class="gp">... </span>    <span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>When creating an <code class="docutils literal"><span class="pre">AWSSurveyor</span></code> instance, you can also configure
+the <code class="docutils literal"><span class="pre">regions</span></code> preset by setting the <code class="docutils literal"><span class="pre">set_all_regions</span></code> flag to
+<code class="docutils literal"><span class="pre">True</span></code>.</p>
+<ul>
+<li><p class="first">Read presets from the default configuration file and then
+update the <code class="docutils literal"><span class="pre">regions</span></code> preset to include all regions:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span> <span class="o">=</span> <span class="n">AWSSurveyor</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">set_all_regions</span><span class="o">=</span><span class="kc">True</span>
+<span class="gp">... </span>    <span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="configuration-files">
+<span id="aws-surveyor-config-files-label"></span><h2>Configuration Files<a class="headerlink" href="#configuration-files" title="Permalink to this headline">¶</a></h2>
+<p>AWSSurveyor configuration files define the preset values for the AWS
+credentials profiles, the AWS regions and the AWS entity types
+(corresponding to <code class="docutils literal"><span class="pre">AWSInformer</span></code> subclasses) that the <code class="docutils literal"><span class="pre">survey()</span></code>
+method will use.</p>
+<blockquote>
+<div><p>An example of a typical <code class="docutils literal"><span class="pre">AWSSurveyor</span></code> configuration file:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;profiles&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;some_profile&quot;</span><span class="p">,</span> <span class="s2">&quot;another_profile&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;regions&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">,</span> <span class="s2">&quot;us-west-1&quot;</span><span class="p">,</span> <span class="s2">&quot;us-west-2&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;entity_types&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ec2&quot;</span><span class="p">,</span> <span class="s2">&quot;security_group&quot;</span><span class="p">,</span> <span class="s2">&quot;subnet&quot;</span><span class="p">,</span> <span class="s2">&quot;vpc&quot;</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>The default location for an <code class="docutils literal"><span class="pre">AWSSurveyor</span></code> configuration file is
+<code class="file docutils literal"><span class="pre">$HOME/.aws/aws_surveyor.cfg</span></code>. If this file exists, it will be
+read automatically unless explicitly suppressed. You can also use
+configuration files in other locations or use initialization
+arguments for configuration. See
+<a class="reference internal" href="#aws-surveyor-initialization-package-label"><span class="std std-ref">AWSSurveyor Initialization</span></a> for more detailed
+information on surveyor initialization and configuration.</p>
+</div>
+<div class="section" id="updating-awssurveyor-configuration">
+<span id="aws-surveyor-updating-configuration-package-label"></span><h2>Updating AWSSurveyor Configuration<a class="headerlink" href="#updating-awssurveyor-configuration" title="Permalink to this headline">¶</a></h2>
+<p>If you want to change the presets for an existing AWSSurveyor
+instance, you can assign directly to the <code class="docutils literal"><span class="pre">presets</span></code> property. You can
+also set the <code class="docutils literal"><span class="pre">profiles</span></code>, <code class="docutils literal"><span class="pre">regions</span></code> and <code class="docutils literal"><span class="pre">entity_types</span></code> explicily,
+or use the <code class="docutils literal"><span class="pre">add_*</span></code> and <code class="docutils literal"><span class="pre">remove_*</span></code> methods.</p>
+<blockquote>
+<div><p><strong>Examples</strong></p>
+<ul>
+<li><p class="first">Set the <code class="docutils literal"><span class="pre">presets</span></code> property directly:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span> <span class="o">=</span> <span class="n">AWSSurveyor</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">presets</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">... </span>    <span class="s1">&#39;profiles&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;some_profile&#39;</span><span class="p">,</span> <span class="s1">&#39;another_profile&#39;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="s1">&#39;regions&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;us-east-1&#39;</span><span class="p">,</span> <span class="s1">&#39;us-west-1&#39;</span><span class="p">,</span> <span class="s1">&#39;us-west-2&#39;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="s1">&#39;entity_types&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;ec2&#39;</span><span class="p">,</span> <span class="s1">&#39;security_group&#39;</span><span class="p">,</span> <span class="s1">&#39;subnet&#39;</span><span class="p">,</span> <span class="s1">&#39;vpc&#39;</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">presets</span>
+<span class="go">{&#39;profiles&#39;: [&#39;some_profile&#39;, &#39;another_profile&#39;], &#39;regions&#39;: [</span>
+<span class="go">&#39;us-east-1&#39;, &#39;us-west-1&#39;, &#39;us-west-2&#39;], &#39;entity_types&#39;: [&#39;ec2&#39;,</span>
+<span class="go">&#39;security_group&#39;, &#39;subnet&#39;, &#39;vpc&#39;]}</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Assign values to individual presets:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span> <span class="o">=</span> <span class="n">AWSSurveyor</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">profiles</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;this_profile&#39;</span><span class="p">,</span> <span class="s1">&#39;that_profile&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">profiles</span>
+<span class="go">[&#39;this_profile&#39;, &#39;that_profile&#39;]</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">remove_profile</span><span class="p">([</span><span class="s1">&#39;that_profile&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">add_profiles</span><span class="p">([</span><span class="s1">&#39;another_profile&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">profiles</span>
+<span class="go">[&#39;this_profile&#39;, &#39;another_profile&#39;]</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Adding duplicate preset values or trying to remove values that aren&#8217;t
+already present will have no effect on existing presets:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span> <span class="o">=</span> <span class="n">AWSSurveyor</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">profiles</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;this_profile&#39;</span><span class="p">,</span> <span class="s1">&#39;that_profile&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">profiles</span>
+<span class="go">[&#39;this_profile&#39;, &#39;that_profile&#39;]</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">remove_profile</span><span class="p">([</span><span class="s1">&#39;another_profile&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">profiles</span>
+<span class="go">[&#39;this_profile&#39;, &#39;that_profile&#39;]</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">regions</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;us-west-1&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">regions</span>
+<span class="go">[&#39;us-west-1&#39;]</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">add_regions</span><span class="p">([</span><span class="s1">&#39;us-west-1&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">regions</span>
+<span class="go">[&#39;us-west-1&#39;]</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="executing-surveys">
+<span id="aws-surveyor-executing-surveys-package-label"></span><h2>Executing Surveys<a class="headerlink" href="#executing-surveys" title="Permalink to this headline">¶</a></h2>
+<p>Use the <code class="docutils literal"><span class="pre">AWSSurveyor.survey()</span></code> method to query Amazon Web Services
+and create <code class="docutils literal"><span class="pre">AWSInformer</span></code> instances for entity types in regions and
+using profiles currently configured as presets or to a subset of the
+preset regions and profiles as defined in arguments passed to
+<code class="docutils literal"><span class="pre">survey()</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Arguments for <code class="docutils literal"><span class="pre">profiles</span></code> and <code class="docutils literal"><span class="pre">regions</span></code> passed to
+<code class="docutils literal"><span class="pre">survey()</span></code> must already be present in the <code class="docutils literal"><span class="pre">AWSSurveyor</span></code>
+instance&#8217;s presets. If you want to survey new profiles or regions
+you must first use the <code class="docutils literal"><span class="pre">add_profiles()</span></code> and <code class="docutils literal"><span class="pre">add_regions()</span></code>
+methods to update the presets.</p>
+</div>
+<p>Use the <code class="docutils literal"><span class="pre">AWSSurveyor.instances()</span></code> method to retrieve the results of
+the survey as a list of <code class="docutils literal"><span class="pre">AWSInformer</span></code> instances.</p>
+<blockquote>
+<div><p><strong>Examples</strong></p>
+<ul>
+<li><p class="first">Survey using presets defined at instance initialization:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span> <span class="o">=</span> <span class="n">AWSSurveyor</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">profiles</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;some_profile&#39;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">regions</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;us-east-1&#39;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">entity_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ec2&#39;</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">survey</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">instances</span> <span class="o">=</span> <span class="n">surveyor</span><span class="o">.</span><span class="n">instances</span><span class="p">()</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Pass arguments to <code class="docutils literal"><span class="pre">survey()</span></code> to override presets. This will
+survey <em>vpc</em> entity_types in region <em>us-west-2</em> using
+credentials defined for <em>another_profile</em>, regardless of the
+configuration in the <code class="file docutils literal"><span class="pre">aws_surveyor</span></code> configuration file:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span> <span class="o">=</span> <span class="n">AWSSurveyor</span><span class="p">(</span><span class="n">config_path</span><span class="o">=</span><span class="s1">&#39;aws_surveyor.cfg&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">survey</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">profiles</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;another_profile&#39;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">regions</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;us-west-2&#39;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">entity_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;vpc&#39;</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">instances</span> <span class="o">=</span> <span class="n">surveyor</span><span class="o">.</span><span class="n">instances</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This surveyor will survey <em>vpc</em> entity_types using the
+settings for <cite>profile</cite> and <cite>region</cite> in the
+<code class="file docutils literal"><span class="pre">aws_surveyor</span></code> configuration file:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span> <span class="o">=</span> <span class="n">AWSSurveyor</span><span class="p">(</span><span class="n">config_path</span><span class="o">=</span><span class="s1">&#39;aws_surveyor.cfg&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">survey</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">entity_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;vpc&#39;</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">instances</span> <span class="o">=</span> <span class="n">surveyor</span><span class="o">.</span><span class="n">instances</span><span class="p">()</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div></blockquote>
+<dl class="class">
+<dt id="boogio.aws_surveyor.AWSSurveyor">
+<em class="property">class </em><code class="descclassname">boogio.aws_surveyor.</code><code class="descname">AWSSurveyor</code><span class="sig-paren">(</span><em>profiles=None</em>, <em>regions=None</em>, <em>entity_types=None</em>, <em>config_path=None</em>, <em>add_to_config=False</em>, <em>set_all_regions=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_surveyor.html#AWSSurveyor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Manage AWS queries and <code class="docutils literal"><span class="pre">AWSInformer</span></code> instances with the results.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>profiles</strong> (<em>list of str</em><em>, </em><em>optional</em>) &#8211; A list of the AWS credentials profiles to use for AWS
+sessions.</li>
+<li><strong>regions</strong> (<em>list of str</em><em>, </em><em>optional</em>) &#8211; A list of the AWS regions to connect to with AWS
+sessions.</li>
+<li><strong>entity_types</strong> (<em>list of str</em><em>, </em><em>optional</em>) &#8211; A list of the entity types to retrieve when
+<code class="docutils literal"><span class="pre">AWSSurveyor.survey()</span></code> is called.</li>
+<li><strong>config_path</strong> (<em>string</em><em>, </em><em>optional</em>) &#8211; The path to a JSON format configuration file. See
+<a class="reference internal" href="#aws-surveyor-config-files-label"><span class="std std-ref">Configuration Files</span></a>.</li>
+<li><strong>add_to_config</strong> (<em>bool</em><em>, </em><em>default=False</em>) &#8211; If <cite>True</cite>, any presets values defined by arguments will be
+added to the presets values read from any configuration
+files. If <cite>False</cite>, values passed as arguments will
+overwrite values from configuration files.</li>
+<li><strong>set_all_regions</strong> (<em>bool</em><em>, </em><em>default=False</em>) &#8211; If <cite>True</cite>, the <code class="docutils literal"><span class="pre">regions</span></code> preset will be set to a list of
+all currently available regions. This requires a call to
+<code class="docutils literal"><span class="pre">aws_surveyor.all_regions()</span></code>, which connects to AWS.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="boogio.aws_surveyor.AWSSurveyor.mediators">
+<code class="descname">mediators</code><a class="reference internal" href="_modules/boogio/aws_surveyor.html#AWSSurveyor.mediators"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.mediators" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>list of AWSMediator</em> &#8211; A list of AWSMediator instances, one for each profile and
+region assigned to the surveyor or obtained from default
+configuration selection (e.g. the default profile or an
+EC2 instance profile).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.aws_surveyor.AWSSurveyor.accounts">
+<code class="descname">accounts</code><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.accounts" title="Permalink to this definition">¶</a></dt>
+<dd><p>The surveyors&#8217; <code class="docutils literal"><span class="pre">AWSMediator</span></code>&#8216;s AWS account attributes.</p>
+<p>Each element of the list is a dict with the account
+information for one of the surveyor&#8217;s mediators, of the form:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="s1">&#39;account_id&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">AWS</span> <span class="n">Account</span> <span class="n">ID</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="s1">&#39;account_name&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">Account</span> <span class="n">Name</span><span class="p">,</span> <span class="k">if</span> <span class="n">defined</span> <span class="ow">in</span> <span class="n">boogio</span><span class="o">.</span><span class="n">json</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="s1">&#39;account_desc&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">account_name</span> <span class="k">if</span> <span class="n">defined</span><span class="p">,</span> <span class="ow">or</span> <span class="n">account_id</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="s1">&#39;region_name&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">mediator</span><span class="s1">&#39;s region_name attribute&gt;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_surveyor.AWSSurveyor.add_entity_types">
+<code class="descname">add_entity_types</code><span class="sig-paren">(</span><em>entity_types</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_surveyor.html#AWSSurveyor.add_entity_types"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.add_entity_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add new values to the <code class="docutils literal"><span class="pre">entity_types</span></code> attribute.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>entity_types</strong> (<em>list of str</em>) &#8211; The entity_type values to add.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_surveyor.AWSSurveyor.add_filters">
+<code class="descname">add_filters</code><span class="sig-paren">(</span><em>entity_type</em>, <em>filters</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_surveyor.html#AWSSurveyor.add_filters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.add_filters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add AWS entity retrieval filters to the surveyor&#8217;s mediators.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>entity_type</strong> (<em>string</em>) &#8211; An informer entity type to which this filter will
+apply.</li>
+<li><strong>new_filters</strong> (<em>dict</em>) &#8211; The <em>Name</em> strings and <em>Values</em> lists for the filters.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>See the documentation for <code class="docutils literal"><span class="pre">AWSMediator</span></code> for further details.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_surveyor.AWSSurveyor.add_profiles">
+<code class="descname">add_profiles</code><span class="sig-paren">(</span><em>profiles</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_surveyor.html#AWSSurveyor.add_profiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.add_profiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add new values to the <code class="docutils literal"><span class="pre">profiles</span></code> attribute.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>profiles</strong> (<em>list of str</em>) &#8211; The profile values to add.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_surveyor.AWSSurveyor.add_regions">
+<code class="descname">add_regions</code><span class="sig-paren">(</span><em>regions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_surveyor.html#AWSSurveyor.add_regions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.add_regions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add new values to the <code class="docutils literal"><span class="pre">regions</span></code> attribute.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>regions</strong> (<em>list of str</em>) &#8211; The region values to add.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_surveyor.AWSSurveyor.all_paths">
+<code class="descname">all_paths</code><span class="sig-paren">(</span><em>*entity_types</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_surveyor.html#AWSSurveyor.all_paths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.all_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find prunable paths available in informers of given types.</p>
+<p>Find all the prune specification paths present in the list of
+<code class="docutils literal"><span class="pre">to_dict()</span></code> output for a list of <code class="docutils literal"><span class="pre">AWSInformer</span></code> instances.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>entity_types</strong> (<em>tuple of str</em>) &#8211; A tuple of informer entity
+types.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
+<dt>A list of all the <code class="docutils literal"><span class="pre">prune</span></code> path specifications</dt>
+<dd>found in and informer in this instance&#8217;s
+<code class="docutils literal"><span class="pre">informers()</span></code> list.</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+<p>See the documentation for the utensils <code class="docutils literal"><span class="pre">prune</span></code> module
+for information on pruning and prune paths.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="boogio.aws_surveyor.AWSSurveyor.default_config_dir">
+<em class="property">classmethod </em><code class="descname">default_config_dir</code><span class="sig-paren">(</span><em>value=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_surveyor.html#AWSSurveyor.default_config_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.default_config_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set or get the class default configuration file directory.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> (<em>string</em><em>, </em><em>optional</em>) &#8211; If provided, the string to set as the default
+configuration directory.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(string) The current value (updated with the new
+value, if provided) of the default configuration
+directory.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="boogio.aws_surveyor.AWSSurveyor.default_config_filename">
+<em class="property">classmethod </em><code class="descname">default_config_filename</code><span class="sig-paren">(</span><em>value=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_surveyor.html#AWSSurveyor.default_config_filename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.default_config_filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set or get the class default configuration filename.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> (<em>string</em><em>, </em><em>optional</em>) &#8211; If provided, the string to set as the default
+configuration filename.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(string) The current value (updated with the new value, if
+provided) of the default configuration filename.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="boogio.aws_surveyor.AWSSurveyor.default_config_path">
+<em class="property">classmethod </em><code class="descname">default_config_path</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_surveyor.html#AWSSurveyor.default_config_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.default_config_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the path to the default configuration file.</p>
+<p>Return the path formed by joining the default configuration
+filename to the default configuration directory.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.aws_surveyor.AWSSurveyor.entity_types">
+<code class="descname">entity_types</code><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.entity_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get or set the entity_types attribute.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_surveyor.AWSSurveyor.expand_informers">
+<code class="descname">expand_informers</code><span class="sig-paren">(</span><em>*entity_types</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_surveyor.html#AWSSurveyor.expand_informers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.expand_informers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Expand the current list of surveyed <code class="docutils literal"><span class="pre">AWSInformer</span></code> instances.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>entity_types</strong> (<em>list of str</em>) &#8211; A list of informer entity
+types.</td>
+</tr>
+</tbody>
+</table>
+<p>Calling the <code class="docutils literal"><span class="pre">AWSSurveyor.expand_informers()</span></code> method will
+call the <code class="docutils literal"><span class="pre">expand()</span></code> method on each instance in the current
+list of surveyed informers, or on each instance of one of the
+entity types indicated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_surveyor.AWSSurveyor.informers">
+<code class="descname">informers</code><span class="sig-paren">(</span><em>*entity_types</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_surveyor.html#AWSSurveyor.informers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.informers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the current list of surveyed <code class="docutils literal"><span class="pre">AWSInformer</span></code> instances.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>entity_types</strong> (<em>list of str</em>) &#8211; A list of informer entity
+types.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
+<dt>A list of the informers of the specified entity</dt>
+<dd>types retrieved in the last call to <code class="docutils literal"><span class="pre">survey()</span></code>.</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">mediators</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_surveyor.html#AWSSurveyor.mediators"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Return the list of <code class="docutils literal"><span class="pre">AWSMediator</span></code> instances in use.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.aws_surveyor.AWSSurveyor.presets">
+<code class="descname">presets</code><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.presets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get or set all of the presets attributes at once.</p>
+<p>The presets attributes are <code class="docutils literal"><span class="pre">profiles</span></code>, <code class="docutils literal"><span class="pre">regions</span></code> and
+<code class="docutils literal"><span class="pre">entity_types</span></code> The <code class="docutils literal"><span class="pre">presets</span></code> derived property returns them
+as a dictionary with the attribute names as keys and the
+attribute values as values.</p>
+<p>Setting presets to a dictionary with the same keys will assign
+the corresponding values, <em>and assign an empty list for any
+of the presets attributes not present in the dictionary</em>.</p>
+<p class="rubric">Examples</p>
+<ul>
+<li><p class="first">Set all presets to the values shown:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span> <span class="o">=</span> <span class="n">AWSSurveyor</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">presets</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">... </span>    <span class="s1">&#39;profiles&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;some_profile&#39;</span><span class="p">,</span> <span class="s1">&#39;another_profile&#39;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="s1">&#39;regions&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;us-east-1&#39;</span><span class="p">,</span> <span class="s1">&#39;us-west-1&#39;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="s1">&#39;entity_types&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;vpc&#39;</span><span class="p">,</span> <span class="s1">&#39;subnet&#39;</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="p">}</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Set the profile preset to <code class="docutils literal"><span class="pre">[another_profile]</span></code> and
+empty the other presets:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span> <span class="o">=</span> <span class="n">AWSSurveyor</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">presets</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;profiles&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;another_profile&#39;</span><span class="p">]}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.aws_surveyor.AWSSurveyor.profiles">
+<code class="descname">profiles</code><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.profiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get or set the profiles attribute.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.aws_surveyor.AWSSurveyor.regions">
+<code class="descname">regions</code><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.regions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get or set the regions attribute.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_surveyor.AWSSurveyor.remove_all_filters">
+<code class="descname">remove_all_filters</code><span class="sig-paren">(</span><em>*remove_types</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_surveyor.html#AWSSurveyor.remove_all_filters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.remove_all_filters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove AWS entity filters from the surveyor&#8217;s mediators.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_surveyor.AWSSurveyor.remove_entity_types">
+<code class="descname">remove_entity_types</code><span class="sig-paren">(</span><em>entity_types</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_surveyor.html#AWSSurveyor.remove_entity_types"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.remove_entity_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove values from the <code class="docutils literal"><span class="pre">entity_types</span></code> attribute.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>entity_types</strong> (<em>list of str</em>) &#8211; The entity_type values to remove.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_surveyor.AWSSurveyor.remove_profiles">
+<code class="descname">remove_profiles</code><span class="sig-paren">(</span><em>profiles</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_surveyor.html#AWSSurveyor.remove_profiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.remove_profiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove values from the <code class="docutils literal"><span class="pre">profiles</span></code> attribute.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>profiles</strong> (<em>list of str</em>) &#8211; The profile values to remove.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_surveyor.AWSSurveyor.remove_regions">
+<code class="descname">remove_regions</code><span class="sig-paren">(</span><em>regions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_surveyor.html#AWSSurveyor.remove_regions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.remove_regions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove values from the <code class="docutils literal"><span class="pre">regions</span></code> attribute.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>regions</strong> (<em>list of str</em>) &#8211; The region values to remove.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_surveyor.AWSSurveyor.set_ec2_elb_supplementals">
+<code class="descname">set_ec2_elb_supplementals</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_surveyor.html#AWSSurveyor.set_ec2_elb_supplementals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.set_ec2_elb_supplementals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Record LoadBalancer names in EC2 Instance supplementals.</p>
+<p>Calling <code class="docutils literal"><span class="pre">set_ec2_elb_supplementals()</span></code> will add a
+<code class="docutils literal"><span class="pre">load_balancer_names</span></code> item to each EC2InstanceInformer in
+the surveyor&#8217;s informers.</p>
+<p>Note that this will retrieve ELB records from AWS if they
+aren&#8217;t already loaded.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_surveyor.AWSSurveyor.survey">
+<code class="descname">survey</code><span class="sig-paren">(</span><em>*entity_types</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_surveyor.html#AWSSurveyor.survey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.survey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Conduct a survey of preset or specified AWS targets.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>*entity_types</strong> (<em>str</em>) &#8211; A tuple of the entity types to retrieve for this
+survey, instead of any instance presets.</li>
+<li><strong>profiles</strong> (<em>list of str</em><em>, </em><em>optional</em>) &#8211; A subset of instance profiles to use for this survey.</li>
+<li><strong>regions</strong> (<em>list of str</em><em>, </em><em>optional</em>) &#8211; A subset of instance regions to use for this survey.</li>
+<li><strong>refresh</strong> (<em>optional</em>) &#8211; If <code class="docutils literal"><span class="pre">True</span></code> (the default), delete all existing
+informer records and load anew. If <code class="docutils literal"><span class="pre">False</span></code>, preserve
+existing records for any entity type that has already
+been loaded.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If any item in <code class="docutils literal"><span class="pre">profiles</span></code> or <code class="docutils literal"><span class="pre">regions</span></code>
+isn&#8217;t already present in the corresponding presets.</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If any of the entity types in <code class="docutils literal"><span class="pre">entity_types</span></code>
+isn&#8217;t a valid <code class="docutils literal"><span class="pre">AWSInformer</span></code> entity type.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The <code class="docutils literal"><span class="pre">survey()</span></code> method populates the internal list of
+<code class="docutils literal"><span class="pre">AWSInformer</span></code> instances maintained by this <code class="docutils literal"><span class="pre">AWSSurveyor</span></code>
+instance, which can then be accessed via the <code class="docutils literal"><span class="pre">instances()</span></code>
+method.</p>
+<p>By default, the <code class="docutils literal"><span class="pre">profiles</span></code>, <code class="docutils literal"><span class="pre">regions</span></code> and <code class="docutils literal"><span class="pre">entity_types</span></code>
+used will be the presets values. Any values passed in as
+arguments will override the corresponding presets values.
+<em>This can be used to limit the profiles and regions surveyed
+to a subset of those already configured as presets, but no new
+profiles or regions can be added.</em> There is no such
+restriction for <code class="docutils literal"><span class="pre">entity_types</span></code>, and any new types will be
+added to the instance&#8217;s <code class="docutils literal"><span class="pre">entity_types</span></code> preset.</p>
+<p>If no profile was specified (so that default, environment
+variable specified or instance profile associated credentials
+will be used), any profiles passed to <code class="docutils literal"><span class="pre">survey()</span></code> will be
+ignored.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.aws_surveyor.AWSSurveyor.survey_timestamp">
+<code class="descname">survey_timestamp</code><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.survey_timestamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the _survey_timestamp attribute.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.aws_surveyor.AWSSurveyor.timestamp_format">
+<code class="descname">timestamp_format</code><em class="property"> = '%Y%m%dT%H%M%S'</em><a class="headerlink" href="#boogio.aws_surveyor.AWSSurveyor.timestamp_format" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.aws_surveyor.all_regions">
+<code class="descclassname">boogio.aws_surveyor.</code><code class="descname">all_regions</code><span class="sig-paren">(</span><em>profile_name=None</em>, <em>region_name=None</em>, <em>*filters</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_surveyor.html#all_regions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_surveyor.all_regions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all region names matching any of the strings in filters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>profile_name</strong> (<em>str</em>) &#8211; An AWS credentials profile name to use call the boto3
+<code class="docutils literal"><span class="pre">describe_regions()</span></code> API to retrieve the names of all
+regions currently supported.</li>
+<li><strong>region_name</strong> (<em>str</em>) &#8211; An AWS region name to use call the boto3
+<code class="docutils literal"><span class="pre">describe_regions()</span></code> API to retrieve the names of all
+regions currently supported.</li>
+<li><strong>filters</strong> (<em>list of str</em>) &#8211; A list of strings which occur as substrings of the desired
+regions.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">All available regions that contain at least one
+filter as a substring.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">(list of str)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Examples:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">all_regions</span><span class="p">(</span><span class="s1">&#39;us&#39;</span><span class="p">)</span>
+<span class="go">[&#39;us-east-1&#39;, &#39;us-west-1&#39;, &#39;us-west-2&#39;]</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">all_regions</span><span class="p">(</span><span class="s1">&#39;north&#39;</span><span class="p">,</span> <span class="s1">&#39;south&#39;</span><span class="p">)</span>
+<span class="go">[&#39;ap-northeast-1&#39;, &#39;ap-southeast-1&#39;, &#39;ap-southeast-2&#39;]</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">all_regions</span><span class="p">(</span><span class="s1">&#39;-2&#39;</span><span class="p">)</span>
+<span class="go">[&#39;ap-southeast-2&#39;, &#39;us-west-2&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="boogio.aws_reporter.html" class="btn btn-neutral float-right" title="boogio.aws_reporter module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="boogio.aws_informer.html" class="btn btn-neutral" title="boogio.aws_informer module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Scott Brown.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

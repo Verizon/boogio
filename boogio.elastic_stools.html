@@ -1,0 +1,829 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>boogio.elastic_stools package &mdash; boogio 1.0.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="boogio 1.0.0 documentation" href="index.html"/>
+        <link rel="prev" title="boogio.sqs_sifter module" href="boogio.sqs_sifter.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> boogio
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="boogio.aws_informer.html"> aws_informer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="boogio.aws_surveyor.html"> aws_surveyor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="boogio.aws_reporter.html"> aws_reporter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="boogio.sqs_sifter.html"> sqs_sifter</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#"> elastic_stools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-boogio.elastic_stools.data_dispatch">boogio.elastic_stools.data_dispatch module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-boogio.elastic_stools.dataset">boogio.elastic_stools.dataset module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-boogio.elastic_stools.dispatch">boogio.elastic_stools.dispatch module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-boogio.elastic_stools.elastic_search_indexer">boogio.elastic_stools.elastic_search_indexer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-boogio.elastic_stools.metawrap">boogio.elastic_stools.metawrap module</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">boogio</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>boogio.elastic_stools package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/boogio.elastic_stools.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-boogio.elastic_stools">
+<span id="boogio-elastic-stools-package"></span><h1>boogio.elastic_stools package<a class="headerlink" href="#module-boogio.elastic_stools" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-boogio.elastic_stools.data_dispatch">
+<span id="boogio-elastic-stools-data-dispatch-module"></span><h2>boogio.elastic_stools.data_dispatch module<a class="headerlink" href="#module-boogio.elastic_stools.data_dispatch" title="Permalink to this headline">¶</a></h2>
+<p>data_dispatch.py</p>
+<p>Manage data dispatches for opticon reports.</p>
+<dl class="class">
+<dt id="boogio.elastic_stools.data_dispatch.DataDispatch">
+<em class="property">class </em><code class="descclassname">boogio.elastic_stools.data_dispatch.</code><code class="descname">DataDispatch</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/data_dispatch.html#DataDispatch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.data_dispatch.DataDispatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.elastic_stools.dispatch.Dispatch" title="boogio.elastic_stools.dispatch.Dispatch"><code class="xref py py-class docutils literal"><span class="pre">boogio.elastic_stools.dispatch.Dispatch</span></code></a></p>
+<p>Represent a collection of DataSet items and &#8220;header&#8221; dispatch fields.</p>
+<dl class="method">
+<dt id="boogio.elastic_stools.data_dispatch.DataDispatch.add_dataset">
+<code class="descname">add_dataset</code><span class="sig-paren">(</span><em>dset</em>, <em>validation=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/data_dispatch.html#DataDispatch.add_dataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.data_dispatch.DataDispatch.add_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a dataset to the _dispatch structure. The dataset can be
+given as a python structure, the path to a JSON file or a DataSet
+instance.</p>
+<p>Unless the validation flag is explicitly set to False, a
+ValidationError will be raised if the dataset isn&#8217;t schema
+compliant. If this occurs, the calling DataDispatch will not
+be modified.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.elastic_stools.data_dispatch.DataDispatch.is_valid">
+<code class="descname">is_valid</code><span class="sig-paren">(</span><em>schema_name='data_dispatch'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/data_dispatch.html#DataDispatch.is_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.data_dispatch.DataDispatch.is_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicate validity of this data_dispatch or its fields.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.elastic_stools.data_dispatch.DataDispatch.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>schema_name='data_dispatch'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/data_dispatch.html#DataDispatch.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.data_dispatch.DataDispatch.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check validity of this data_dispatch or its fields.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.elastic_stools.data_dispatch.is_valid">
+<code class="descclassname">boogio.elastic_stools.data_dispatch.</code><code class="descname">is_valid</code><span class="sig-paren">(</span><em>candidate</em>, <em>schema_name='data_dispatch'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/data_dispatch.html#is_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.data_dispatch.is_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate a possible data_dispatch against the data_dispatch schema.</p>
+<p>Parameters:
+candidate &#8211; a possible data_dispatch dict.</p>
+<p>Returns:
+True if jsonschema.validate indicates candidate is a valid instance
+of the data_dispatch schema; false otherwise.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.elastic_stools.data_dispatch.validate">
+<code class="descclassname">boogio.elastic_stools.data_dispatch.</code><code class="descname">validate</code><span class="sig-paren">(</span><em>candidate</em>, <em>schema_name='data_dispatch'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/data_dispatch.html#validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.data_dispatch.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate a possible data_dispatch against the data_dispatch schema.</p>
+<p>Parameters:
+candidate &#8211; a possible data_dispatch dict.</p>
+<p>Raises an exception in Draft4Validator.validate() if candidate
+is not a valid instance of the data_dispatch schema.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-boogio.elastic_stools.dataset">
+<span id="boogio-elastic-stools-dataset-module"></span><h2>boogio.elastic_stools.dataset module<a class="headerlink" href="#module-boogio.elastic_stools.dataset" title="Permalink to this headline">¶</a></h2>
+<p>dataset.py</p>
+<p>Manage dataset and data item schemas for opticon reports.</p>
+<dl class="class">
+<dt id="boogio.elastic_stools.dataset.DataSet">
+<em class="property">class </em><code class="descclassname">boogio.elastic_stools.dataset.</code><code class="descname">DataSet</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dataset.html#DataSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dataset.DataSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.elastic_stools.dispatch.Dispatch" title="boogio.elastic_stools.dispatch.Dispatch"><code class="xref py py-class docutils literal"><span class="pre">boogio.elastic_stools.dispatch.Dispatch</span></code></a></p>
+<p>Represent a set of data and associated information in a
+metawrapped structure.</p>
+<p>The data field schema is determined by the needs of the DataSet
+generator.</p>
+<dl class="method">
+<dt id="boogio.elastic_stools.dataset.DataSet.has_data">
+<code class="descname">has_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dataset.html#DataSet.has_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dataset.DataSet.has_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicate whether the data element is populated.</p>
+<p>This is provided in anticipation of customization by subclasses
+that want to allow some kind of non-empty default data elements
+which should be treated as &#8220;not yet populated&#8221;.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.elastic_stools.dataset.DataSet.is_valid">
+<code class="descname">is_valid</code><span class="sig-paren">(</span><em>schema_name='dataset'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dataset.html#DataSet.is_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dataset.DataSet.is_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicate validity of this dataset.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.elastic_stools.dataset.DataSet.set_data">
+<code class="descname">set_data</code><span class="sig-paren">(</span><em>data</em>, <em>noclobber=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dataset.html#DataSet.set_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dataset.DataSet.set_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the data section of this dataset.</p>
+<p>If the noclobber parameter is not expicitly set to False, a
+ValueError will be raised if the data section is already
+populated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.elastic_stools.dataset.DataSet.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>schema_name='dataset'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dataset.html#DataSet.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dataset.DataSet.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check validity of this dataset.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.elastic_stools.dataset.is_valid">
+<code class="descclassname">boogio.elastic_stools.dataset.</code><code class="descname">is_valid</code><span class="sig-paren">(</span><em>candidate</em>, <em>schema_name='dataset'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dataset.html#is_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dataset.is_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate a possible dataset against the dataset schema.</p>
+<p>Parameters:
+candidate &#8211; a possible dataset dict.</p>
+<p>Returns:
+True if jsonschema.validate indicates candidate is a valid instance
+of the dataset schema; false otherwise.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.elastic_stools.dataset.validate">
+<code class="descclassname">boogio.elastic_stools.dataset.</code><code class="descname">validate</code><span class="sig-paren">(</span><em>candidate</em>, <em>schema_name='dataset'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dataset.html#validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dataset.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate a possible dataset against the dataset schema.</p>
+<p>Parameters:
+candidate &#8211; a possible dataset dict.</p>
+<p>Raises an exception in Draft4Validator.validate() if candidate
+is not a valid instance of the dataset schema.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-boogio.elastic_stools.dispatch">
+<span id="boogio-elastic-stools-dispatch-module"></span><h2>boogio.elastic_stools.dispatch module<a class="headerlink" href="#module-boogio.elastic_stools.dispatch" title="Permalink to this headline">¶</a></h2>
+<p>dispatch.py</p>
+<p>Manage dispatch schema instances for Opticon reports.</p>
+<p>The jsonschema schemas for this package require
+<a class="reference external" href="http://pypi.python.org/pypi/rfc3987/">http://pypi.python.org/pypi/rfc3987/</a> and
+<a class="reference external" href="http://pypi.python.org/pypi/strict-rfc3339">http://pypi.python.org/pypi/strict-rfc3339</a>. Install with</p>
+<blockquote>
+<div>pip install rfc3987
+pip install strict-rfc3339</div></blockquote>
+<p>How to use the Dispatch class:</p>
+<p>The Dispatch class ensures that the proper fields are included in
+elements of the dispatch list. The Dispatch schema
+is a dictionary with three top level keys:</p>
+<blockquote>
+<div><ul class="simple">
+<li>_meta &#8211; specification of the json schema.</li>
+<li>origin &#8211; information regarding the creation of the dispatch, such
+as timestamps, servers involved, and scripts or tools used.</li>
+<li>commentary &#8211; descriptive copy provided for use in reports and
+other &#8220;downstream&#8221; presentations of the dispatch.</li>
+</ul>
+</div></blockquote>
+<p>Dispatch instances store the dispatch record in the internal _dispatch
+variable. The value in this variable will be checked for schmema
+compliance in the following circumstances:</p>
+<blockquote>
+<div><ul class="simple">
+<li>When the instance&#8217;s is_valid() method is called.</li>
+<li>When the instance&#8217;s validate() method is called.</li>
+<li>When the instance&#8217;s json_dumps() method is called without explicitly
+setting the validate parameter to False.</li>
+</ul>
+</div></blockquote>
+<p>The Dispatch.is_valid() method will return True or False indicating
+validity of the _dispatch.</p>
+<p>The Dispatch.validate() and Dispatch.json_dumps() methods will call the
+jsonschema.Draft4Validator() method to validate the _dispatch, which
+will raise an exception if the _dispatch isn&#8217;t valid.</p>
+<p>Dispatch instance _dispatch values can be populated when the instance is
+initialized, and can be updated using methods with various rules for
+preserving, modifying or replacing existing values.</p>
+<p>Several initialization and update methods accept a skip_validation
+parameter with a default value of True, and will validate the
+resulting dispatch unless this parameter is explicity set to False. For
+example, when constructing Dispatch instances there will be cases where
+the instance is only partially complete and is not yet fully valid,
+while in other cases a known valid Dispatch instance is being modified
+and should remain valid.</p>
+<p>Other update methods accept a validation parameter with a default
+value of True, and will validate the resulting dispatch unless this
+parameter is explicitly set to False. These are generally methods like
+Dispatch.add_timestamps(), which modify subelements of the calling
+Dispatch instance that have their own subschemas.</p>
+<p>In all cases where validation checks fail, the calling Dispatch will
+not be modified.</p>
+<p>In general, any time values for the section of a _dispatch dict are
+passed in a parameter, the parameter can hold either the section
+structure directly or the path to a JSON file containing the section
+structure. Thus, e.g., the _meta parameter to an updating method may
+be either the actual _meta field value or a string specifying the path
+to a JSON file holding the value.</p>
+<p>Modification and update methods:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Dispatch</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">dispatch</span><span class="p">)</span>
+<span class="n">Dispatch</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="o">**</span><span class="n">dispatch_dict</span><span class="p">)</span>
+
+<span class="n">Set</span> <span class="n">values</span> <span class="n">of</span> <span class="n">undefined</span> <span class="n">elements</span> <span class="n">of</span> <span class="n">the</span> <span class="n">calling</span> <span class="n">Dispatch</span> <span class="n">instance</span> <span class="n">to</span>
+<span class="n">the</span> <span class="n">corresponding</span> <span class="n">values</span> <span class="n">of</span> <span class="n">the</span> <span class="n">indicated</span> <span class="n">dispatch_dict</span> <span class="ow">or</span> <span class="n">Dispatch</span>
+<span class="n">instance</span><span class="o">.</span> <span class="n">Keys</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">merge</span> <span class="n">source</span> <span class="n">that</span> <span class="n">already</span> <span class="n">exist</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">calling</span>
+<span class="n">Dispatch</span> <span class="n">instance</span> <span class="n">will</span> <span class="n">be</span> <span class="n">ignored</span><span class="p">;</span> <span class="n">the</span> <span class="n">calling</span> <span class="n">Dispatch</span> <span class="n">instance</span><span class="s1">&#39;s</span>
+<span class="n">values</span> <span class="k">for</span> <span class="n">those</span> <span class="n">keys</span> <span class="n">will</span> <span class="ow">not</span> <span class="n">be</span> <span class="n">changed</span><span class="o">.</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Dispatch</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">dispatch</span><span class="p">,</span> <span class="n">noclobber</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">Dispatch</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="o">**</span><span class="n">dispatch_dict</span><span class="p">,</span> <span class="n">noclobber</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">Set</span> <span class="n">value</span> <span class="n">of</span> <span class="n">elements</span> <span class="n">of</span> <span class="n">the</span> <span class="n">calling</span> <span class="n">Dispatch</span> <span class="n">instance</span> <span class="k">with</span> <span class="n">the</span>
+<span class="n">corresponding</span> <span class="n">elements</span> <span class="n">of</span> <span class="n">the</span> <span class="n">indicated</span> <span class="n">dispatch_dict</span> <span class="ow">or</span> <span class="n">Dispatch</span>
+<span class="n">instance</span><span class="o">.</span> <span class="n">If</span> <span class="n">a</span> <span class="n">key</span> <span class="n">exists</span> <span class="ow">in</span> <span class="n">both</span> <span class="n">the</span> <span class="n">calling</span> <span class="n">Dispatch</span> <span class="n">instance</span> <span class="ow">and</span>
+<span class="n">the</span> <span class="n">merge</span> <span class="n">source</span><span class="p">,</span> <span class="n">the</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">calling</span> <span class="n">instance</span> <span class="n">will</span> <span class="n">be</span>
+<span class="n">overwritten</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>Dispatch.add_timestamp(key, timestamp)</p>
+<blockquote>
+<div>Add timestamps to the calling Dispatch instance. Duplicates of
+existing timestamps will be ignored, in compliance with the schema.</div></blockquote>
+<p>Dispatch.set_source(source)</p>
+<blockquote>
+<div>Set the calling Dispatch origin source.</div></blockquote>
+<p>Dispatch.add_target(target)</p>
+<blockquote>
+<div>Add targets to the calling Dispatch instance. Duplicates of existing
+targets will be ignored, in compliance with the schema.</div></blockquote>
+<p>Dispatch.set_generator(type, generator)</p>
+<blockquote>
+<div>Set the calling Dispatch origin generator field.</div></blockquote>
+<p>Dispatch.set_commentary_fields(commentary)</p>
+<blockquote>
+<div>Set the calling Dispatch&#8217;s commentary fields as indicated by the
+fields in the commentary parameter.</div></blockquote>
+<p>Dispatch.append_commentary(commentary)</p>
+<blockquote>
+<div>Append the indicated commentary text to the corresponding commentary
+fields. For string valued commentary, the text will be appended to
+any existing text. For list-of-strings valued commentary, the text
+will be appended as a list element.</div></blockquote>
+<dl class="class">
+<dt id="boogio.elastic_stools.dispatch.Base">
+<em class="property">class </em><code class="descclassname">boogio.elastic_stools.dispatch.</code><code class="descname">Base</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dispatch.html#Base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dispatch.Base" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Absorb all kwargs passed to this point.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="boogio.elastic_stools.dispatch.Dispatch">
+<em class="property">class </em><code class="descclassname">boogio.elastic_stools.dispatch.</code><code class="descname">Dispatch</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dispatch.html#Dispatch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.elastic_stools.dispatch.Base" title="boogio.elastic_stools.dispatch.Base"><code class="xref py py-class docutils literal"><span class="pre">boogio.elastic_stools.dispatch.Base</span></code></a></p>
+<p>Represent the information regarding an Opticon dispatch creation
+and description.</p>
+<dl class="attribute">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.SCHEMA_NAME">
+<code class="descname">SCHEMA_NAME</code><em class="property"> = 'dispatch'</em><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.SCHEMA_NAME" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.SCHEMA_VERSION">
+<code class="descname">SCHEMA_VERSION</code><em class="property"> = '1.0.0'</em><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.SCHEMA_VERSION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.__getitem__">
+<code class="descname">__getitem__</code><span class="sig-paren">(</span><em>field</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dispatch.html#Dispatch.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Internal &#8220;listy&#8221; lookup of top level fields.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.add_target">
+<code class="descname">add_target</code><span class="sig-paren">(</span><em>target</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dispatch.html#Dispatch.add_target"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.add_target" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a target entry.</p>
+<p>Before modifying the Dispatch instance, the new target is first
+checked for schema validity. If this fails, a ValidationError is
+raised and the Dispatch instance is not modified.</p>
+<p>Duplicates of existing target entries will be skipped. In this
+context, a new target is considered a duplicate of an existing
+target if all the items in the new target are items in the existing
+target.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.add_timestamp">
+<code class="descname">add_timestamp</code><span class="sig-paren">(</span><em>key</em>, <em>timestamp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dispatch.html#Dispatch.add_timestamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.add_timestamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a timestamp entry.</p>
+<p>Before modifying the Dispatch instance, the new timestamp is first
+checked for schema validity. If this fails, a ValidationError is
+raised and the Dispatch instance is not modified.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.append_commentary_fields">
+<code class="descname">append_commentary_fields</code><span class="sig-paren">(</span><em>commentary</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dispatch.html#Dispatch.append_commentary_fields"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.append_commentary_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set commentary fields.</p>
+<p>This passes through to _update_commentary_fields(..., append=True).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.class_schema">
+<code class="descname">class_schema</code><em class="property"> = {u'description': u'An Opticon dispatch', u'title': u'DataSet Schema', u'required': [u'_meta', u'origin'], u'$schema': u'http://json-schema.org/draft-04/schema#', u'type': u'object', u'properties': {u'origin': {u'$ref': u'origin.schema.json'}, u'commentary': {u'$ref': u'commentary.schema.json'}, u'_meta': {u'$ref': u'_meta.schema.json'}}}</em><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.class_schema" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.f">
+<code class="descname">f</code><em class="property"> = 'timestamp.schema.json'</em><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.f" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.files">
+<code class="descname">files</code><em class="property"> = ['_meta.schema.json', 'commentary.schema.json', 'data_dispatch.schema.json', 'dataset.schema.json', 'dispatch.schema.json', 'generator.schema.json', 'network_node.schema.json', 'origin.schema.json', 'string_array.schema.json', 'timestamp.schema.json']</em><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.files" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.is_valid">
+<code class="descname">is_valid</code><span class="sig-paren">(</span><em>schema_name='dispatch'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dispatch.html#Dispatch.is_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.is_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicate validity of this dispatch.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.json_dump">
+<code class="descname">json_dump</code><span class="sig-paren">(</span><em>fp</em>, <em>validation=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dispatch.html#Dispatch.json_dump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.json_dump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a JSON representation of a Dispatch instance to file-like
+object fp.</p>
+<p>This is generally going to be used as an output method on the
+way to generating files for use down the road, so we enforce
+validation unless explicitly instructed otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.json_dumps">
+<code class="descname">json_dumps</code><span class="sig-paren">(</span><em>validation=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dispatch.html#Dispatch.json_dumps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.json_dumps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a JSON representation of a Dispatch instance.</p>
+<p>This is generally going to be used as an output method on the
+way to generating files for use down the road, so we enforce
+validation unless explicitly instructed otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.json_load">
+<code class="descname">json_load</code><span class="sig-paren">(</span><em>fp</em>, <em>validation=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dispatch.html#Dispatch.json_load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.json_load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a JSON representation of a Dispatch instance to file-like
+object fp.</p>
+<p>This is generally going to be used as an output method on the
+way to generating files for use down the road, so we enforce
+validation unless explicitly instructed otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.json_loads">
+<code class="descname">json_loads</code><span class="sig-paren">(</span><em>json_string</em>, <em>validation=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dispatch.html#Dispatch.json_loads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.json_loads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a JSON representation of a Dispatch instance.</p>
+<p>This requires the _dispatch content in the source JSON be valid per
+the Dispatch schema unless the validate parameter is explicitly set
+to False.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.merge">
+<code class="descname">merge</code><span class="sig-paren">(</span><em>other_dispatch=None</em>, <em>noclobber=True</em>, <em>skip_validation=True</em>, <em>_meta={}</em>, <em>origin={}</em>, <em>commentary={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dispatch.html#Dispatch.merge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.merge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy another dispatch&#8217;s information into this dispatch.</p>
+<p>The source for copying can be specified either by passing
+another Dispatch instance as the first parameter, or by
+passing named parameters for each section of a _dispatch. If
+both types of source are passed, the values from the Dispatch
+instance are first merged, followed by those of the individual
+sections.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>-- A Dispatch instance to merge from.</strong> (<em>other_dispatch</em>) &#8211; </li>
+<li><strong>-- Specific _meta section values to merge.</strong> (<em>_meta</em>) &#8211; </li>
+<li><strong>-- Specific origin section values to merge.</strong> (<em>origin</em>) &#8211; </li>
+<li><strong>-- Specific commentary section values to merge.</strong> (<em>commentary</em>) &#8211; </li>
+<li><strong>-- If True</strong><strong>, </strong><strong>fields that exist in sections of the</strong> (<em>noclobber</em>) &#8211; calling Dispatch instance won&#8217;t be changed. If False,
+such fields will be set to the new values.
+Default: True</li>
+<li><strong>-- If True</strong><strong>, </strong><strong>the _dispatch resulting from</strong> (<em>skip_validation</em>) &#8211; this cloning will not be validated against the Dispatch
+schema. If False, it will be validated. If validation
+fails a ValidationError will be raised and the original
+_dispatch will be left unaltered.
+Default: True</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.name">
+<code class="descname">name</code><em class="property"> = 'timestamp'</em><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.schema_file_suffix">
+<code class="descname">schema_file_suffix</code><em class="property"> = 'schema.json'</em><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.schema_file_suffix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.schema_names">
+<code class="descname">schema_names</code><em class="property"> = ['_meta', 'commentary', 'data_dispatch', 'dataset', 'dispatch', 'generator', 'network_node', 'origin', 'string_array', 'timestamp']</em><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.schema_names" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.schema_path">
+<code class="descname">schema_path</code><em class="property"> = '/Users/browsc3/workspace/boogio/boogio/elastic_stools/schema'</em><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.schema_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.schema_resolver">
+<em class="property">classmethod </em><code class="descname">schema_resolver</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dispatch.html#Dispatch.schema_resolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.schema_resolver" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.schemas">
+<code class="descname">schemas</code><em class="property"> = {'origin': {u'description': u'Information captured when the data in a dataset was generated.', u'title': u'Origin Schema', u'required': [u'name', u'source', u'targets'], u'properties': {u'source': {u'allOf': [{u'$ref': u'network_node.schema.json'}, {u'description': u'The network, server or other entity where the dataset was generated.'}]}, u'generator': {u'allOf': [{u'$ref': u'generator.schema.json'}, {u'description': u'The script or executable that generated the dataset.'}]}, u'name': {u'type': u'string'}, u'timestamps': {u'uniqueItems': True, u'items': {u'$ref': u'timestamp.schema.json'}, u'type': u'array'}, u'targets': {u'minItems': 1, u'uniqueItems': True, u'type': u'array', u'description': u'Network, server or other entities that were the target of the dataset generation.', u'items': {u'$ref': u'network_node.schema.json'}}}, u'$schema': u'http://json-schema.org/draft-04/schema#', u'type': u'object', u'id': u'#origin_schema'}, 'data_dispatch': {u'allOf': [{u'$ref': u'dispatch.schema.json'}, {u'properties': {u'datasets': {u'items': {u'$ref': u'dataset.schema.json'}, u'type': u'array', u'description': u'dataset entities being dispatched by the data_dispatch.'}}, u'description': u'An Opticon dataset', u'title': u'DataSet Schema'}]}, '_meta': {u'description': u'The _meta section of a DataSet', u'title': u'_meta Schema', u'required': [u'schema', u'schema_version'], u'properties': {u'schema_version': {u'type': u'string'}, u'schema': {u'type': u'string'}}, u'$schema': u'http://json-schema.org/draft-04/schema#', u'type': u'object', u'id': u'#_meta_schema'}, 'generator': {u'description': u'Dataset generators (executables for various data generation tasks).', u'title': u'Generator Schema', u'required': [u'name'], u'properties': {u'version': {u'type': u'string'}, u'command': {u'type': u'string'}, u'name': {u'type': u'string'}}, u'$schema': u'http://json-schema.org/draft-04/schema#', u'type': u'object', u'id': u'#generator_schema'}, 'timestamp': {u'description': u'An rfc3339 timestamp. Requires http://pypi.python.org/pypi/strict-rfc3339/.', u'title': u'Timestamp Schema', u'required': [u'key', u'value'], u'properties': {u'value': {u'type': u'string', u'format': u'date-time'}, u'key': {u'type': u'string'}}, u'$schema': u'http://json-schema.org/draft-04/schema#', u'type': u'object', u'id': u'#timestamp_schema'}, 'commentary': {u'description': u'The commentary section of a DataSet', u'title': u'Commentary Schema', u'properties': {u'subheader': {u'type': u'string'}, u'description': {u'$ref': u'string_array.schema.json'}, u'title': {u'type': u'string'}, u'footer': {u'type': u'string'}, u'summary': {u'type': u'string'}, u'header': {u'type': u'string'}, u'prologue': {u'$ref': u'string_array.schema.json'}, u'epilogue': {u'$ref': u'string_array.schema.json'}, u'subject': {u'type': u'string'}}, u'$schema': u'http://json-schema.org/draft-04/schema#', u'type': u'object', u'id': u'#commentary_schema'}, 'network_node': {u'description': u'A network node location. The uri field requires http://pypi.python.org/pypi/rfc3987/.', u'title': u'Network Node Schema', u'required': [u'name'], u'properties': {u'name': {u'type': u'string'}, u'hostname': {u'type': u'string'}, u'uri': {u'type': u'string', u'format': u'uri'}, u'fqdn': {u'type': u'string'}, u'ipv4': {u'type': u'string', u'format': u'ipv4'}, u'location': {u'type': u'string'}}, u'$schema': u'http://json-schema.org/draft-04/schema#', u'type': u'object', u'id': u'#network_node_schema'}, 'string_array': {u'description': u'An array of strings', u'title': u'String Array Schema', u'items': {u'type': u'string'}, u'$schema': u'http://json-schema.org/draft-04/schema#', u'type': u'array', u'id': u'#string_array_schema'}, 'dispatch': {u'description': u'An Opticon dispatch', u'title': u'DataSet Schema', u'required': [u'_meta', u'origin'], u'$schema': u'http://json-schema.org/draft-04/schema#', u'type': u'object', u'properties': {u'origin': {u'$ref': u'origin.schema.json'}, u'commentary': {u'$ref': u'commentary.schema.json'}, u'_meta': {u'$ref': u'_meta.schema.json'}}}, 'dataset': {u'allOf': [{u'$ref': u'dispatch.schema.json'}, {u'properties': {u'data': {}}, u'required': [u'data'], u'description': u'An Opticon dataset', u'title': u'DataSet Schema'}]}}</em><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.schemas" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.set_commentary_fields">
+<code class="descname">set_commentary_fields</code><span class="sig-paren">(</span><em>commentary</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dispatch.html#Dispatch.set_commentary_fields"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.set_commentary_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set commentary fields.</p>
+<p>This passes through to _update_commentary_fields(..., append=False).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.set_generator">
+<code class="descname">set_generator</code><span class="sig-paren">(</span><em>generator</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dispatch.html#Dispatch.set_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.set_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a generator entry.</p>
+<p>Before modifying the Dispatch instance, the new generator is first
+checked for schema validity. If this fails, a ValidationError is
+raised and the Dispatch instance is not modified.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.set_source">
+<code class="descname">set_source</code><span class="sig-paren">(</span><em>source</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dispatch.html#Dispatch.set_source"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.set_source" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a source entry.</p>
+<p>Before modifying the Dispatch instance, the new source is first
+checked for schema validity. If this fails, a ValidationError is
+raised and the Dispatch instance is not modified.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.to_dict">
+<code class="descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dispatch.html#Dispatch.to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dictionary representation of a Dispatch instance.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.elastic_stools.dispatch.Dispatch.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>schema_name='dispatch'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dispatch.html#Dispatch.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dispatch.Dispatch.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check validity of this dispatch.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.elastic_stools.dispatch.is_valid">
+<code class="descclassname">boogio.elastic_stools.dispatch.</code><code class="descname">is_valid</code><span class="sig-paren">(</span><em>candidate</em>, <em>schema_name='dispatch'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dispatch.html#is_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dispatch.is_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate a possible dispatch against the dispatch schema.</p>
+<p>Parameters:
+candidate &#8211; a possible dispatch dict.</p>
+<p>Returns:
+True if jsonschema.validate indicates candidate is a valid instance
+of the dispatch schema; false otherwise.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.elastic_stools.dispatch.validate">
+<code class="descclassname">boogio.elastic_stools.dispatch.</code><code class="descname">validate</code><span class="sig-paren">(</span><em>candidate</em>, <em>schema_name='dispatch'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/dispatch.html#validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.dispatch.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate a possible dispatch against the dispatch schema.</p>
+<p>Parameters:
+candidate &#8211; a possible dispatch dict.</p>
+<p>Raises an exception in Draft4Validator.validate() if candidate
+is not a valid instance of the dispatch schema.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-boogio.elastic_stools.elastic_search_indexer">
+<span id="boogio-elastic-stools-elastic-search-indexer-module"></span><h2>boogio.elastic_stools.elastic_search_indexer module<a class="headerlink" href="#module-boogio.elastic_stools.elastic_search_indexer" title="Permalink to this headline">¶</a></h2>
+<p>Generate ElasticSearch index entries to interleave with strings of JSON
+output.</p>
+<p>Initialize an ElasticSearchIndexer instance with an INDEX_NAME and TYPE_NAME,
+and optionally a starting ID_VALUE, as shown in the usage examples that
+follow. Then call next_index_json each time a new ElasticSearch index is
+needed, typically before each element of a list of json strings is to be
+printed.</p>
+<p>Usage:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">elastic_search_indexer</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">indexer</span> <span class="o">=</span> <span class="n">ElasticSearchIndexer</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="p">{</span><span class="s1">&#39;_index&#39;</span><span class="p">:</span> <span class="s1">&#39;INDEX_NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;_type&#39;</span><span class="p">:</span> <span class="s1">&#39;TYPE_NAME&#39;</span><span class="p">}</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">json_output</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;{&quot;thing0&quot;}&#39;</span><span class="p">,</span> <span class="s1">&#39;{&quot;thing1&quot;}&#39;</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="nb">print</span> <span class="n">indexer</span><span class="o">.</span><span class="n">next_index_json</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="nb">print</span> <span class="n">json_output</span>
+</pre></div>
+</div>
+<p>Resulting output:</p>
+<blockquote>
+<div>{&#8220;index&#8221;:{&#8220;_index&#8221;: &#8220;INDEX_NAME&#8221;, &#8220;_type&#8221;: &#8220;TYPE_NAME&#8221;, &#8220;_id&#8221;: 0}}
+{&#8220;thing0&#8221;}
+{&#8220;index&#8221;:{&#8220;_index&#8221;: &#8220;INDEX_NAME&#8221;, &#8220;_type&#8221;: &#8220;TYPE_NAME&#8221;, &#8220;_id&#8221;: 1}}
+{&#8220;thing1&#8221;}</div></blockquote>
+<p>Usage specifying a starting index:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">elastic_search_indexer</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">indexer</span> <span class="o">=</span> <span class="n">ElasticSearchIndexer</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="p">{</span><span class="s1">&#39;_index&#39;</span><span class="p">:</span> <span class="s1">&#39;INDEX_NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;_type&#39;</span><span class="p">:</span> <span class="s1">&#39;TYPE_NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="mi">42</span><span class="p">}</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">json_output</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;{&quot;thing0&quot;}&#39;</span><span class="p">,</span> <span class="s1">&#39;{&quot;thing1&quot;}&#39;</span><span class="p">,</span> <span class="s1">&#39;{&quot;thing2&quot;}&#39;</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="nb">print</span> <span class="n">indexer</span><span class="o">.</span><span class="n">next_index_json</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="nb">print</span> <span class="n">json_output</span>
+</pre></div>
+</div>
+<p>Resulting output:</p>
+<blockquote>
+<div>{&#8220;index&#8221;:{&#8220;_index&#8221;: &#8220;INDEX_NAME&#8221;, &#8220;_type&#8221;: &#8220;TYPE_NAME&#8221;, &#8220;_id&#8221;: 42}}
+{&#8220;thing0&#8221;}
+{&#8220;index&#8221;:{&#8220;_index&#8221;: &#8220;INDEX_NAME&#8221;, &#8220;_type&#8221;: &#8220;TYPE_NAME&#8221;, &#8220;_id&#8221;: 43}}
+{&#8220;thing1&#8221;}
+{&#8220;index&#8221;:{&#8220;_index&#8221;: &#8220;INDEX_NAME&#8221;, &#8220;_type&#8221;: &#8220;TYPE_NAME&#8221;, &#8220;_id&#8221;: 44}}
+{&#8220;thing3&#8221;}</div></blockquote>
+<dl class="class">
+<dt id="boogio.elastic_stools.elastic_search_indexer.ElasticSearchIndexer">
+<em class="property">class </em><code class="descclassname">boogio.elastic_stools.elastic_search_indexer.</code><code class="descname">ElasticSearchIndexer</code><span class="sig-paren">(</span><em>index_spec</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/elastic_search_indexer.html#ElasticSearchIndexer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.elastic_search_indexer.ElasticSearchIndexer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Generate ElasticSearch index entries to interleave with strings of JSON
+output.</p>
+<dl class="method">
+<dt id="boogio.elastic_stools.elastic_search_indexer.ElasticSearchIndexer.next_index">
+<code class="descname">next_index</code><span class="sig-paren">(</span><em>json_data=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/elastic_search_indexer.html#ElasticSearchIndexer.next_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.elastic_search_indexer.ElasticSearchIndexer.next_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the next index as a python structure.</p>
+<p>json_data is accepted as a parameter for future support of extracting
+the index fields from the entity being indexed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.elastic_stools.elastic_search_indexer.ElasticSearchIndexer.next_index_json">
+<code class="descname">next_index_json</code><span class="sig-paren">(</span><em>json_data=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/elastic_search_indexer.html#ElasticSearchIndexer.next_index_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.elastic_search_indexer.ElasticSearchIndexer.next_index_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the next index as a json string.</p>
+<p>json_data is accepted as a parameter for future support of extracting
+the index fields from the entity being indexed.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-boogio.elastic_stools.metawrap">
+<span id="boogio-elastic-stools-metawrap-module"></span><h2>boogio.elastic_stools.metawrap module<a class="headerlink" href="#module-boogio.elastic_stools.metawrap" title="Permalink to this headline">¶</a></h2>
+<p>metawrap.py</p>
+<p>Wrap or add standard report meta fields around a json structure.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;meta&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;Name&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
+        <span class="s1">&#39;Description&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
+        <span class="s1">&#39;Target&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
+        <span class="s1">&#39;Timestamp&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">YYYYMMDD</span><span class="o">.</span><span class="n">HHMMSS</span><span class="o">&gt;</span><span class="p">,</span>
+        <span class="s1">&#39;Duration&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">YYYYMMDD</span><span class="o">.</span><span class="n">HHMMSS</span><span class="o">&gt;</span><span class="p">,</span>
+        <span class="s1">&#39;Tags&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span><span class="s1">&#39;Key&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span> <span class="s1">&#39;Value&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s1">&#39;Key&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span> <span class="s1">&#39;Value&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">},</span>
+            <span class="o">...</span>
+            <span class="p">],</span>
+        <span class="s1">&#39;Comments&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;Added&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Date&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">datetime</span><span class="o">&gt;</span><span class="p">,</span> <span class="s1">&#39;Owner&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">},</span>
+                <span class="s1">&#39;Comment&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span>
+                <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;Added&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Date&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">datetime</span><span class="o">&gt;</span><span class="p">,</span> <span class="s1">&#39;Owner&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">},</span>
+                <span class="s1">&#39;Comment&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span>
+                <span class="p">},</span>
+            <span class="o">...</span>
+            <span class="p">],</span>
+        <span class="s1">&#39;AlertAddresses&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">&lt;</span><span class="n">email</span><span class="o">|</span><span class="n">other</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">email</span><span class="o">|</span><span class="n">other</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+        <span class="s1">&#39;Status&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
+        <span class="s1">&#39;Substatus&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
+        <span class="s1">&#39;AlertStatus&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
+        <span class="s1">&#39;Classification&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
+        <span class="s1">&#39;Origin&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;URL&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">url</span><span class="o">&gt;</span><span class="p">,</span>
+            <span class="s1">&#39;IP&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">ip</span><span class="o">&gt;</span><span class="p">,</span>
+            <span class="s1">&#39;HostName&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
+            <span class="s1">&#39;Path&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
+            <span class="s1">&#39;Command&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span>
+            <span class="p">},</span>
+        <span class="s1">&#39;ExternalReport&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;URL&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">url</span><span class="o">&gt;</span><span class="p">,</span>
+            <span class="s1">&#39;IP&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">ip</span><span class="o">&gt;</span><span class="p">,</span>
+            <span class="s1">&#39;HostName&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
+            <span class="s1">&#39;Path&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span>
+            <span class="p">},</span>
+        <span class="s1">&#39;ExternalLog&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;URL&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">url</span><span class="o">&gt;</span><span class="p">,</span>
+            <span class="s1">&#39;IP&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">ip</span><span class="o">&gt;</span><span class="p">,</span>
+            <span class="s1">&#39;HostName&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
+            <span class="s1">&#39;Path&#39;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span>
+            <span class="p">},</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="o">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="boogio.elastic_stools.metawrap.json_load_wrap">
+<code class="descclassname">boogio.elastic_stools.metawrap.</code><code class="descname">json_load_wrap</code><span class="sig-paren">(</span><em>this_thing</em>, <em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/metawrap.html#json_load_wrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.metawrap.json_load_wrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read in fields from a JSON file and wrap them around this_thing.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.elastic_stools.metawrap.wrap">
+<code class="descclassname">boogio.elastic_stools.metawrap.</code><code class="descname">wrap</code><span class="sig-paren">(</span><em>this_thing</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/elastic_stools/metawrap.html#wrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.elastic_stools.metawrap.wrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add fields as specified in kwargs to the structure in this_thing.
+If this_thing already has meta and data fields, update the meta
+fields; otherwise, create them and add this_thing as the value of
+the data field.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="boogio.sqs_sifter.html" class="btn btn-neutral" title="boogio.sqs_sifter module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Scott Brown.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

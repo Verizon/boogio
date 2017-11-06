@@ -1,0 +1,390 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>boogio.elastic_stools.elastic_search_indexer &mdash; boogio 1.0.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="boogio 1.0.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> boogio
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../boogio.aws_informer.html"> aws_informer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../boogio.aws_surveyor.html"> aws_surveyor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../boogio.aws_reporter.html"> aws_reporter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../boogio.sqs_sifter.html"> sqs_sifter</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">boogio</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>boogio.elastic_stools.elastic_search_indexer</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for boogio.elastic_stools.elastic_search_indexer</h1><div class="highlight"><pre>
+<span></span><span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<span class="c1"># (c) Verizon Inc. 2015</span>
+<span class="c1"># Author: Scott Brown</span>
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Generate ElasticSearch index entries to interleave with strings of JSON</span>
+<span class="sd">output.</span>
+
+<span class="sd">Initialize an ElasticSearchIndexer instance with an INDEX_NAME and TYPE_NAME,</span>
+<span class="sd">and optionally a starting ID_VALUE, as shown in the usage examples that</span>
+<span class="sd">follow. Then call next_index_json each time a new ElasticSearch index is</span>
+<span class="sd">needed, typically before each element of a list of json strings is to be</span>
+<span class="sd">printed.</span>
+
+<span class="sd">Usage:</span>
+
+<span class="sd">    &gt;&gt;&gt; import elastic_search_indexer</span>
+
+<span class="sd">    &gt;&gt;&gt; indexer = ElasticSearchIndexer(</span>
+<span class="sd">    ...     {&#39;_index&#39;: &#39;INDEX_NAME&#39;, &#39;_type&#39;: &#39;TYPE_NAME&#39;}</span>
+<span class="sd">    ...     )</span>
+<span class="sd">    &gt;&gt;&gt; for json_output in [&#39;{&quot;thing0&quot;}&#39;, &#39;{&quot;thing1&quot;}&#39;]</span>
+<span class="sd">    ...     print indexer.next_index_json()</span>
+<span class="sd">    ...     print json_output</span>
+
+<span class="sd">Resulting output:</span>
+
+<span class="sd">    {&quot;index&quot;:{&quot;_index&quot;: &quot;INDEX_NAME&quot;, &quot;_type&quot;: &quot;TYPE_NAME&quot;, &quot;_id&quot;: 0}}</span>
+<span class="sd">    {&quot;thing0&quot;}</span>
+<span class="sd">    {&quot;index&quot;:{&quot;_index&quot;: &quot;INDEX_NAME&quot;, &quot;_type&quot;: &quot;TYPE_NAME&quot;, &quot;_id&quot;: 1}}</span>
+<span class="sd">    {&quot;thing1&quot;}</span>
+
+
+<span class="sd">Usage specifying a starting index:</span>
+
+<span class="sd">    &gt;&gt;&gt; import elastic_search_indexer</span>
+
+<span class="sd">    &gt;&gt;&gt; indexer = ElasticSearchIndexer(</span>
+<span class="sd">    ...     {&#39;_index&#39;: &#39;INDEX_NAME&#39;, &#39;_type&#39;: &#39;TYPE_NAME&#39;, &#39;_id&#39;: 42}</span>
+<span class="sd">    ...     )</span>
+<span class="sd">    &gt;&gt;&gt; for json_output in [&#39;{&quot;thing0&quot;}&#39;, &#39;{&quot;thing1&quot;}&#39;, &#39;{&quot;thing2&quot;}&#39;]</span>
+<span class="sd">    ...     print indexer.next_index_json()</span>
+<span class="sd">    ...     print json_output</span>
+
+<span class="sd">Resulting output:</span>
+
+<span class="sd">    {&quot;index&quot;:{&quot;_index&quot;: &quot;INDEX_NAME&quot;, &quot;_type&quot;: &quot;TYPE_NAME&quot;, &quot;_id&quot;: 42}}</span>
+<span class="sd">    {&quot;thing0&quot;}</span>
+<span class="sd">    {&quot;index&quot;:{&quot;_index&quot;: &quot;INDEX_NAME&quot;, &quot;_type&quot;: &quot;TYPE_NAME&quot;, &quot;_id&quot;: 43}}</span>
+<span class="sd">    {&quot;thing1&quot;}</span>
+<span class="sd">    {&quot;index&quot;:{&quot;_index&quot;: &quot;INDEX_NAME&quot;, &quot;_type&quot;: &quot;TYPE_NAME&quot;, &quot;_id&quot;: 44}}</span>
+<span class="sd">    {&quot;thing3&quot;}</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+
+
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<span class="c1">#</span>
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="ElasticSearchIndexer"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.elastic_search_indexer.ElasticSearchIndexer">[docs]</a><span class="k">class</span> <span class="nc">ElasticSearchIndexer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Generate ElasticSearch index entries to interleave with strings of JSON</span>
+<span class="sd">    output.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index_spec</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Initialize an ElasticSearchIndexer instance.</span>
+
+<span class="sd">        The index_spec parameter specifies how to populate the fields</span>
+<span class="sd">        of each index created.</span>
+
+<span class="sd">        The index_spec is a dict with the following structure:</span>
+<span class="sd">        {</span>
+<span class="sd">            &#39;_index&#39;: &#39;INDEX_VALUE&#39;,</span>
+<span class="sd">            &#39;_type&#39;: &#39;TYPE_VALUE&#39;,</span>
+<span class="sd">            &#39;_id&#39;: ID_VALUE,</span>
+<span class="sd">            }</span>
+
+<span class="sd">        For future support for pulling the values for the index fields from</span>
+<span class="sd">        the structures being indexed, the following structure is also</span>
+<span class="sd">        supported. This is how the index_spec is represented internally; if</span>
+<span class="sd">        the simpler structure is used for initialization it is convereted.</span>
+<span class="sd">        {</span>
+<span class="sd">            &#39;_index&#39;: {&#39;source&#39;: &#39;INDEX_SOURCE&#39;, &#39;value&#39;: &#39;INDEX_VALUE&#39;},</span>
+<span class="sd">            &#39;_type&#39;: {&#39;source&#39;: &#39;TYPE_SOURCE&#39;, &#39;value&#39;: &#39;TYPE_VALUE&#39;},</span>
+<span class="sd">            &#39;_id&#39;: {&#39;source&#39;: &#39;ID_SOURCE&#39;, &#39;value&#39;: ID_VALUE},</span>
+<span class="sd">            }</span>
+
+<span class="sd">        If &#39;INDEX_SOURCE&#39; or &#39;TYPE_SOURCE&#39; is None or the &#39;source&#39; key is</span>
+<span class="sd">        missing, the corresponding &#39;INDEX_VALUE&#39; or &#39;TYPE_VALUE&#39; will be used</span>
+<span class="sd">        as the value for the &#39;_index&#39; and &#39;_type&#39; fields of the generated</span>
+<span class="sd">        index.</span>
+
+<span class="sd">        If ID_SOURCE is None, the &#39;_id&#39;s for each index generated will be</span>
+<span class="sd">        successive integers starting from the integer ID_VALUE.</span>
+
+<span class="sd">        Additional options for *_SOURCE are not currently implemented.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="c1"># These are the types of the &#39;value&#39; field in the &quot;full internal&quot;</span>
+        <span class="c1"># structure for the index_spec. In the &quot;abbreviated&quot; format these</span>
+        <span class="c1"># are the types that must be provided for each _key.</span>
+        <span class="n">_index_value_schema</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;_index&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="s1">&#39;_type&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="s1">&#39;_id&#39;</span><span class="p">:</span> <span class="nb">int</span>
+            <span class="p">}</span>
+
+        <span class="c1"># _id is optional, and defaults to zero.</span>
+        <span class="k">if</span> <span class="s1">&#39;_id&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">index_spec</span><span class="p">:</span>
+            <span class="n">index_spec</span><span class="p">[</span><span class="s1">&#39;_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+
+        <span class="c1"># Convert &quot;abbreviated&quot; syntax to &quot;full internal&quot; structure.</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;_index&#39;</span><span class="p">,</span> <span class="s1">&#39;_type&#39;</span><span class="p">,</span> <span class="s1">&#39;_id&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;_index&#39;</span><span class="p">,</span> <span class="s1">&#39;_type&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">index_spec</span><span class="p">:</span>
+                <span class="c1"># _index and _type are required.</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                    <span class="s1">&#39;_index and _type fields are required when initializing&#39;</span>
+                    <span class="s1">&#39; an ElasticSearchIndexer instance&#39;</span>
+                    <span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index_spec</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">_index_value_schema</span><span class="p">[</span><span class="n">key</span><span class="p">]):</span>
+                <span class="n">index_spec</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">index_spec</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                    <span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">index_spec</span> <span class="o">=</span> <span class="n">index_spec</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="k">def</span> <span class="nf">_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Construct the _index, using the json_data provided if required by</span>
+<span class="sd">        the index_spec.</span>
+
+<span class="sd">        json_data is accepted as a parameter for future support of extracting</span>
+<span class="sd">        the index fields from the entity being indexed.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_spec</span><span class="p">[</span><span class="s1">&#39;_index&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="k">def</span> <span class="nf">_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Construct the _type, using the json_data provided if required by</span>
+<span class="sd">        the index_spec.</span>
+
+<span class="sd">        json_data is accepted as a parameter for future support of extracting</span>
+<span class="sd">        the index fields from the entity being indexed.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_spec</span><span class="p">[</span><span class="s1">&#39;_type&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="k">def</span> <span class="nf">_incremented_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Construct the _id, using the json_data provided if required by</span>
+<span class="sd">        the index_spec.</span>
+
+<span class="sd">        json_data is accepted as a parameter for future support of extracting</span>
+<span class="sd">        the index fields from the entity being indexed.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_spec</span><span class="p">[</span><span class="s1">&#39;_id&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="ElasticSearchIndexer.next_index"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.elastic_search_indexer.ElasticSearchIndexer.next_index">[docs]</a>    <span class="k">def</span> <span class="nf">next_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Return the next index as a python structure.</span>
+
+<span class="sd">        json_data is accepted as a parameter for future support of extracting</span>
+<span class="sd">        the index fields from the entity being indexed.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="p">{}}</span>
+        <span class="n">index</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">][</span><span class="s1">&#39;_index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">(</span><span class="n">json_data</span><span class="p">)</span>
+        <span class="n">index</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">][</span><span class="s1">&#39;_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type</span><span class="p">(</span><span class="n">json_data</span><span class="p">)</span>
+        <span class="n">index</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">][</span><span class="s1">&#39;_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_incremented_id</span><span class="p">(</span><span class="n">json_data</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">index</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="ElasticSearchIndexer.next_index_json"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.elastic_search_indexer.ElasticSearchIndexer.next_index_json">[docs]</a>    <span class="k">def</span> <span class="nf">next_index_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Return the next index as a json string.</span>
+
+<span class="sd">        json_data is accepted as a parameter for future support of extracting</span>
+<span class="sd">        the index fields from the entity being indexed.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">next_index</span><span class="p">(</span><span class="n">json_data</span><span class="p">))</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Scott Brown.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

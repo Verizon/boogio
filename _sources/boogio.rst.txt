@@ -1,0 +1,15 @@
+boogio package
+==============
+
+.. automodule:: boogio
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. toctree::
+
+    boogio.aws_auditor
+    boogio.aws_informer
+    boogio.aws_reporter
+    boogio.elastic_stools
+

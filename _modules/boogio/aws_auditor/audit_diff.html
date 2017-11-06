@@ -1,0 +1,532 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>boogio.aws_auditor.audit_diff &mdash; boogio 1.0.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="boogio 1.0.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> boogio
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../boogio.aws_informer.html"> aws_informer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../boogio.aws_surveyor.html"> aws_surveyor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../boogio.aws_reporter.html"> aws_reporter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../boogio.sqs_sifter.html"> sqs_sifter</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">boogio</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>boogio.aws_auditor.audit_diff</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for boogio.aws_auditor.audit_diff</h1><div class="highlight"><pre>
+<span></span><span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<span class="c1"># (c) Verizon Inc. 2015</span>
+<span class="c1"># Author: Scott Brown</span>
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">audit_diff.py</span>
+
+<span class="sd">Find differences between aws_auditor results.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+
+
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="DuplicateRecordError"><a class="viewcode-back" href="../../../boogio.aws_auditor.html#boogio.aws_auditor.audit_diff.DuplicateRecordError">[docs]</a><span class="k">class</span> <span class="nc">DuplicateRecordError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    The same uid values unexpectedly occurred in more than one record in</span>
+<span class="sd">    an audit report.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">pass</span></div>
+
+
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<span class="c1">#</span>
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="index_by_keys"><a class="viewcode-back" href="../../../boogio.aws_auditor.html#boogio.aws_auditor.audit_diff.index_by_keys">[docs]</a><span class="k">def</span> <span class="nf">index_by_keys</span><span class="p">(</span><span class="n">audit</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">require_unique</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Return a dict indexing an audit report by a list of keys, and a</span>
+<span class="sd">    list of all keys found in any entry in the audit report.</span>
+
+<span class="sd">    The value for each item in the index returned is a list of all</span>
+<span class="sd">    items in the audit report with values for the key fields matching</span>
+<span class="sd">    the values used to construct the key for that index item.</span>
+
+<span class="sd">    If require_unique is True and index_by_keys doesn&#39;t raise an</span>
+<span class="sd">    exception, the values list for each item in the index returned</span>
+<span class="sd">    will be of length one.</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">indexed_records</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">keys_found</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">audit</span><span class="p">:</span>
+        <span class="n">keys_found</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="kc">True</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">record</span><span class="o">.</span><span class="n">keys</span><span class="p">()})</span>
+        <span class="n">index_key</span> <span class="o">=</span> <span class="nb">str</span><span class="p">([</span><span class="n">record</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">index_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">index</span><span class="p">:</span>
+            <span class="n">index</span><span class="p">[</span><span class="n">index_key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">require_unique</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">DuplicateRecordError</span><span class="p">(</span><span class="n">index_key</span><span class="p">)</span>
+
+        <span class="n">index</span><span class="p">[</span><span class="n">index_key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+        <span class="n">indexed_records</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">assert</span><span class="p">(</span><span class="n">indexed_records</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">audit</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">keys_found</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+
+
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<span class="k">def</span> <span class="nf">_load_json_if_file_exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    If a string is the path to a file, try to load JSON data and return</span>
+<span class="sd">    the resulting structure. If string isn&#39;t the path to a file, return</span>
+<span class="sd">    the string.</span>
+
+<span class="sd">    If any error other than file non-existence is encountered, raise it.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="n">return_val</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">err</span><span class="o">.</span><span class="n">errno</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="c1"># file doesn&#39;t exist</span>
+            <span class="n">return_val</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">err</span>
+
+    <span class="k">return</span> <span class="n">return_val</span>
+
+
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<span class="c1"># AuditDiff</span>
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="AuditDiff"><a class="viewcode-back" href="../../../boogio.aws_auditor.html#boogio.aws_auditor.audit_diff.AuditDiff">[docs]</a><span class="k">class</span> <span class="nc">AuditDiff</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Calculate and manage audit differences.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">baseline</span><span class="o">=</span><span class="kc">None</span>
+            <span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Initialize an AuditDiff instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">baseline</span> <span class="o">=</span> <span class="n">baseline</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="AuditDiff.compare"><a class="viewcode-back" href="../../../boogio.aws_auditor.html#boogio.aws_auditor.audit_diff.AuditDiff.compare">[docs]</a>    <span class="k">def</span> <span class="nf">compare</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">audit0</span><span class="p">,</span>
+            <span class="n">audit1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">uid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">require_unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">ignore</span><span class="o">=</span><span class="p">[],</span>
+            <span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Calculate differences between two audit reports.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        audit0, audit1 -- The two audit reports to compare. These should</span>
+<span class="sd">            be lists of dicts, and each dict should be flat in the sense</span>
+<span class="sd">            of the flatten package. These may also be the paths to json</span>
+<span class="sd">            files defining such dicts.</span>
+
+<span class="sd">            If audit1 is None, self.baseline will be used for audit0 and</span>
+<span class="sd">            the audit report passed as audit0 will be used for audit1.</span>
+
+<span class="sd">        uid -- A list of keys that should be considered to identify an</span>
+<span class="sd">            audit record as representing a unique entity.</span>
+
+<span class="sd">        require_unique -- Whether multiple records with the same uid</span>
+<span class="sd">            values are allowed. If set to True, an exception will be</span>
+<span class="sd">            raised if more than one record with the same values for the</span>
+<span class="sd">            keys in uid occurs in the same audit report.</span>
+
+<span class="sd">        ignore -- A list of keys, differences in whose values won&#39;t be</span>
+<span class="sd">            considered in determining if records have changed.</span>
+
+<span class="sd">        Records will be &quot;expected&quot; the same if they have the same</span>
+<span class="sd">        values for the keys listed in uid. Differences in the values</span>
+<span class="sd">        for other keys will be reported. Any uid value combinations</span>
+<span class="sd">        not appearing in both audits will be reported as additions or</span>
+<span class="sd">        deletions depending on the audit in which they appear.</span>
+
+<span class="sd">        Return Value:</span>
+
+<span class="sd">        compare() returns a dict with three elements:</span>
+<span class="sd">            {</span>
+<span class="sd">            &#39;uid&#39;: uid,</span>
+<span class="sd">            &#39;key_diff&#39;: key_diff,</span>
+<span class="sd">            &#39;record_diff&#39;: record_diff</span>
+<span class="sd">            }</span>
+
+<span class="sd">        uid -- the uid passed in to compare().</span>
+
+<span class="sd">        key_diff -- a pair [audit0_uniq_keys, audit1_uniq_keys], where</span>
+<span class="sd">            each element is a list of the keys that occur in the indicated</span>
+<span class="sd">            audit but not the other.</span>
+
+<span class="sd">        record_diff -- a list of all pairs [audit0_item, audit1_item] where</span>
+<span class="sd">            audit0_item and audit1_item have the same values for all of the</span>
+<span class="sd">            keys in uid but differ in some other value. Values for keys in</span>
+<span class="sd">            key_diff aren&#39;t considered when calculating record_diff, but</span>
+<span class="sd">            audit items differeing in their common keys will be included.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># Try to load from JSON.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">audit0</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">audit0</span> <span class="o">=</span> <span class="n">_load_json_if_file_exists</span><span class="p">(</span><span class="n">audit0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">audit1</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">audit1</span> <span class="o">=</span> <span class="n">_load_json_if_file_exists</span><span class="p">(</span><span class="n">audit1</span><span class="p">)</span>
+
+        <span class="c1"># If only one audit is passed, we compare it to this audit diff&#39;s</span>
+        <span class="c1"># baseline audit.</span>
+        <span class="k">if</span> <span class="n">audit1</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">audit1</span> <span class="o">=</span> <span class="n">audit0</span>
+            <span class="n">audit0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">baseline</span>
+
+        <span class="c1"># Index items according to their values for the keys in uid.</span>
+        <span class="p">(</span><span class="n">index0</span><span class="p">,</span> <span class="n">audit0_keys</span><span class="p">)</span> <span class="o">=</span> <span class="n">index_by_keys</span><span class="p">(</span><span class="n">audit0</span><span class="p">,</span> <span class="n">uid</span><span class="p">,</span> <span class="n">require_unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">index1</span><span class="p">,</span> <span class="n">audit1_keys</span><span class="p">)</span> <span class="o">=</span> <span class="n">index_by_keys</span><span class="p">(</span><span class="n">audit1</span><span class="p">,</span> <span class="n">uid</span><span class="p">,</span> <span class="n">require_unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Keys that only appear in one or the other audit.</span>
+        <span class="n">audit0_uniq_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">audit0_keys</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">audit1_keys</span><span class="p">]</span>
+        <span class="n">audit1_uniq_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">audit1_keys</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">audit0_keys</span><span class="p">]</span>
+
+        <span class="c1"># # Keys that appear in some record in each audit.</span>
+        <span class="c1"># audit_common_keys = [k for k in audit0_keys if k in audit1_keys]</span>
+
+        <span class="c1"># Value combinations for UID keys that appear in one or the other or</span>
+        <span class="c1"># both audits. The values in the indices are of length one because</span>
+        <span class="c1"># we called index_by_keys() with require_unique=True.</span>
+        <span class="n">index0_only</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">index0</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">index1</span><span class="p">}</span>
+        <span class="n">index0_shared</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">index0</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">index1</span><span class="p">}</span>
+        <span class="n">index1_only</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">index1</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">index0</span><span class="p">}</span>
+        <span class="n">index1_shared</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">index1</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">index0</span><span class="p">}</span>
+
+        <span class="c1"># The specific records differ but there better be the same number.</span>
+        <span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">index0_shared</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">index1_shared</span><span class="p">))</span>
+
+        <span class="c1"># Our return values, eventually.</span>
+        <span class="n">key_diff</span> <span class="o">=</span> <span class="p">[</span><span class="n">audit0_uniq_keys</span><span class="p">,</span> <span class="n">audit1_uniq_keys</span><span class="p">]</span>
+        <span class="n">record_diff</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Records for entities that only appear in the first audit.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">index0_only</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">record_diff</span> <span class="o">=</span> <span class="n">record_diff</span> <span class="o">+</span> <span class="p">[</span>
+                <span class="p">[</span><span class="n">v</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">index0_only</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+                <span class="p">]</span>
+
+        <span class="c1"># Records for entities that only appear in the second audit.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">index1_only</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">record_diff</span> <span class="o">=</span> <span class="n">record_diff</span> <span class="o">+</span> <span class="p">[</span>
+                <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">v</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">index1_only</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+                <span class="p">]</span>
+
+        <span class="c1"># Records for entities that appear in both audits. We treat them</span>
+        <span class="c1"># as part of the diff if they differ in any values, or if they</span>
+        <span class="c1"># have any unshared keys that aren&#39;t in the overall unique keys.</span>
+        <span class="c1"># The latter are omitted here because every record would show up</span>
+        <span class="c1"># as different.</span>
+        <span class="c1">#</span>
+        <span class="c1"># TODO: Add an option to include audit*_uniq_keys differences.</span>
+        <span class="c1"># If the option is set, use [] as the audit*_key_ignore list.</span>
+        <span class="n">audit0_key_ignore</span> <span class="o">=</span> <span class="n">audit0_uniq_keys</span>
+        <span class="n">audit1_key_ignore</span> <span class="o">=</span> <span class="n">audit1_uniq_keys</span>
+
+        <span class="k">for</span> <span class="p">(</span><span class="n">common_index</span><span class="p">,</span> <span class="n">record_0</span><span class="p">)</span> <span class="ow">in</span> <span class="n">index0_shared</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+            <span class="n">record_1</span> <span class="o">=</span> <span class="n">index1_shared</span><span class="p">[</span><span class="n">common_index</span><span class="p">]</span>
+            <span class="c1"># record0 and record1 are audit records with common uid values.</span>
+
+            <span class="n">unshared_keys_0</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">record_0</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">record_1</span> <span class="ow">and</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">audit0_key_ignore</span>
+                <span class="p">]</span>
+            <span class="n">unshared_keys_1</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">record_1</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">record_0</span> <span class="ow">and</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">audit1_key_ignore</span>
+                <span class="p">]</span>
+
+            <span class="c1"># print record_0</span>
+            <span class="c1"># print record_1</span>
+            <span class="n">value_diff_keys</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">record_0</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">k</span> <span class="ow">in</span> <span class="n">record_1</span>
+                    <span class="ow">and</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ignore</span>
+                    <span class="ow">and</span> <span class="n">record_0</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">!=</span> <span class="n">record_1</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                    <span class="p">)</span>
+                <span class="p">]</span>
+
+            <span class="k">if</span> <span class="nb">max</span><span class="p">([</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="n">value_diff_keys</span><span class="p">),</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="n">unshared_keys_0</span><span class="p">),</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="n">unshared_keys_1</span><span class="p">)</span>
+                    <span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">record_diff</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">record_0</span><span class="p">,</span> <span class="n">record_1</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;uid&#39;</span><span class="p">:</span> <span class="n">uid</span><span class="p">,</span>
+            <span class="s1">&#39;key_diff&#39;</span><span class="p">:</span> <span class="n">key_diff</span><span class="p">,</span>
+            <span class="s1">&#39;record_diff&#39;</span><span class="p">:</span> <span class="n">record_diff</span>
+            <span class="p">}</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="AuditDiff.added"><a class="viewcode-back" href="../../../boogio.aws_auditor.html#boogio.aws_auditor.audit_diff.AuditDiff.added">[docs]</a>    <span class="k">def</span> <span class="nf">added</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">audit0</span><span class="p">,</span>
+            <span class="n">audit1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">uid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">require_unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">ignore</span><span class="o">=</span><span class="p">[],</span>
+            <span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Find records in audit1 that aren&#39;t in audit0.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">comparison</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span>
+            <span class="n">audit0</span><span class="p">,</span>
+            <span class="n">audit1</span><span class="o">=</span><span class="n">audit1</span><span class="p">,</span>
+            <span class="n">uid</span><span class="o">=</span><span class="n">uid</span><span class="p">,</span>
+            <span class="n">require_unique</span><span class="o">=</span><span class="n">require_unique</span><span class="p">,</span>
+            <span class="n">ignore</span><span class="o">=</span><span class="n">ignore</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">rd</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">rd</span> <span class="ow">in</span> <span class="n">comparison</span><span class="p">[</span><span class="s1">&#39;record_diff&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">rd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="p">]</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="AuditDiff.deleted"><a class="viewcode-back" href="../../../boogio.aws_auditor.html#boogio.aws_auditor.audit_diff.AuditDiff.deleted">[docs]</a>    <span class="k">def</span> <span class="nf">deleted</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">audit0</span><span class="p">,</span>
+            <span class="n">audit1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">uid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">require_unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">ignore</span><span class="o">=</span><span class="p">[],</span>
+            <span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Find records in audit0 that aren&#39;t in audit1.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">comparison</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span>
+            <span class="n">audit0</span><span class="p">,</span>
+            <span class="n">audit1</span><span class="o">=</span><span class="n">audit1</span><span class="p">,</span>
+            <span class="n">uid</span><span class="o">=</span><span class="n">uid</span><span class="p">,</span>
+            <span class="n">require_unique</span><span class="o">=</span><span class="n">require_unique</span><span class="p">,</span>
+            <span class="n">ignore</span><span class="o">=</span><span class="n">ignore</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">rd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">rd</span> <span class="ow">in</span> <span class="n">comparison</span><span class="p">[</span><span class="s1">&#39;record_diff&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">rd</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="p">]</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="AuditDiff.changed"><a class="viewcode-back" href="../../../boogio.aws_auditor.html#boogio.aws_auditor.audit_diff.AuditDiff.changed">[docs]</a>    <span class="k">def</span> <span class="nf">changed</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">audit0</span><span class="p">,</span>
+            <span class="n">audit1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">uid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">require_unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">ignore</span><span class="o">=</span><span class="p">[],</span>
+            <span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Find records in both audit0 and audit1 that changed.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">comparison</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span>
+            <span class="n">audit0</span><span class="p">,</span>
+            <span class="n">audit1</span><span class="o">=</span><span class="n">audit1</span><span class="p">,</span>
+            <span class="n">uid</span><span class="o">=</span><span class="n">uid</span><span class="p">,</span>
+            <span class="n">require_unique</span><span class="o">=</span><span class="n">require_unique</span><span class="p">,</span>
+            <span class="n">ignore</span><span class="o">=</span><span class="n">ignore</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">rd</span> <span class="k">for</span> <span class="n">rd</span> <span class="ow">in</span> <span class="n">comparison</span><span class="p">[</span><span class="s1">&#39;record_diff&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">rd</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rd</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="p">]</span></div></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Scott Brown.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

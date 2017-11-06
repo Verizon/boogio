@@ -1,0 +1,7 @@
+boogio
+======
+
+.. toctree::
+   :maxdepth: 4
+
+   boogio

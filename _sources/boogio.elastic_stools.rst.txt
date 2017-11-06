@@ -1,0 +1,49 @@
+boogio.elastic_stools package
+=============================
+
+.. automodule:: boogio.elastic_stools
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+boogio.elastic_stools.data_dispatch module
+------------------------------------------
+
+.. automodule:: boogio.elastic_stools.data_dispatch
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+boogio.elastic_stools.dataset module
+------------------------------------
+
+.. automodule:: boogio.elastic_stools.dataset
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+boogio.elastic_stools.dispatch module
+-------------------------------------
+
+.. automodule:: boogio.elastic_stools.dispatch
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+boogio.elastic_stools.elastic_search_indexer module
+---------------------------------------------------
+
+.. automodule:: boogio.elastic_stools.elastic_search_indexer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+boogio.elastic_stools.metawrap module
+-------------------------------------
+
+.. automodule:: boogio.elastic_stools.metawrap
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+

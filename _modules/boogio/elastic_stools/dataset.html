@@ -1,0 +1,350 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>boogio.elastic_stools.dataset &mdash; boogio 1.0.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="boogio 1.0.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> boogio
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../boogio.aws_informer.html"> aws_informer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../boogio.aws_surveyor.html"> aws_surveyor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../boogio.aws_reporter.html"> aws_reporter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../boogio.sqs_sifter.html"> sqs_sifter</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">boogio</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>boogio.elastic_stools.dataset</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for boogio.elastic_stools.dataset</h1><div class="highlight"><pre>
+<span></span><span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<span class="c1"># (c) Verizon Inc. 2015</span>
+<span class="c1"># Author: Scott Brown</span>
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">dataset.py</span>
+
+<span class="sd">Manage dataset and data item schemas for opticon reports.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">jsonschema</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">dispatch</span>
+
+
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<span class="c1"># is_valid</span>
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="is_valid"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dataset.is_valid">[docs]</a><span class="k">def</span> <span class="nf">is_valid</span><span class="p">(</span><span class="n">candidate</span><span class="p">,</span> <span class="n">schema_name</span><span class="o">=</span><span class="s1">&#39;dataset&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Validate a possible dataset against the dataset schema.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    candidate -- a possible dataset dict.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    True if jsonschema.validate indicates candidate is a valid instance</span>
+<span class="sd">    of the dataset schema; false otherwise.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">dispatch</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(</span><span class="n">candidate</span><span class="p">,</span> <span class="n">schema_name</span><span class="o">=</span><span class="n">schema_name</span><span class="p">)</span></div>
+
+
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<span class="c1"># validate</span>
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="validate"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dataset.validate">[docs]</a><span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="n">candidate</span><span class="p">,</span> <span class="n">schema_name</span><span class="o">=</span><span class="s1">&#39;dataset&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Validate a possible dataset against the dataset schema.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    candidate -- a possible dataset dict.</span>
+
+<span class="sd">    Raises an exception in Draft4Validator.validate() if candidate</span>
+<span class="sd">    is not a valid instance of the dataset schema.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">dispatch</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">candidate</span><span class="p">,</span> <span class="n">schema_name</span><span class="o">=</span><span class="n">schema_name</span><span class="p">)</span></div>
+
+
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<span class="c1"># DataSet</span>
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="DataSet"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dataset.DataSet">[docs]</a><span class="k">class</span> <span class="nc">DataSet</span><span class="p">(</span><span class="n">dispatch</span><span class="o">.</span><span class="n">Dispatch</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    Represent a set of data and associated information in a</span>
+<span class="sd">    metawrapped structure.</span>
+
+<span class="sd">    The data field schema is determined by the needs of the DataSet</span>
+<span class="sd">    generator.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c1"># Default value for the data section. This is used in has_data().</span>
+    <span class="n">_default_data</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># __init__</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Initialize a DataSet instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_data</span>
+            <span class="p">}</span>
+
+        <span class="n">params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">DataSet</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="c1"># Everything but data is passed to the parent init, and there&#39;s</span>
+        <span class="c1"># nothing to validate on data.</span>
+        <span class="c1"># working_dispatch = {</span>
+        <span class="c1">#     &#39;data&#39;: self._load_or_copy(data),</span>
+        <span class="c1">#     &#39;_meta&#39;: self._load_or_copy(_meta),</span>
+        <span class="c1">#     &#39;origin&#39;: self._load_or_copy(origin),</span>
+        <span class="c1">#     &#39;commentary&#39;: self._load_or_copy(commentary)</span>
+        <span class="c1">#     }</span>
+
+        <span class="c1"># if not skip_validation:</span>
+        <span class="c1">#     validate(working_dispatch)</span>
+
+        <span class="c1"># self._dispatch = copy.deepcopy(working_dispatch)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_or_copy</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># validate</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="DataSet.validate"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dataset.DataSet.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schema_name</span><span class="o">=</span><span class="s1">&#39;dataset&#39;</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Check validity of this dataset.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># return validate(self._dispatch, schema_name=schema_name)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">DataSet</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">schema_name</span><span class="o">=</span><span class="n">schema_name</span><span class="p">)</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># is_valid</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="DataSet.is_valid"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dataset.DataSet.is_valid">[docs]</a>    <span class="k">def</span> <span class="nf">is_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schema_name</span><span class="o">=</span><span class="s1">&#39;dataset&#39;</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Indicate validity of this dataset.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">DataSet</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(</span><span class="n">schema_name</span><span class="o">=</span><span class="n">schema_name</span><span class="p">)</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># has_data</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="DataSet.has_data"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dataset.DataSet.has_data">[docs]</a>    <span class="k">def</span> <span class="nf">has_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Indicate whether the data element is populated.</span>
+
+<span class="sd">        This is provided in anticipation of customization by subclasses</span>
+<span class="sd">        that want to allow some kind of non-empty default data elements</span>
+<span class="sd">        which should be treated as &quot;not yet populated&quot;.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_data</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># set_data</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="DataSet.set_data"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dataset.DataSet.set_data">[docs]</a>    <span class="k">def</span> <span class="nf">set_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">noclobber</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Set the data section of this dataset.</span>
+
+<span class="sd">        If the noclobber parameter is not expicitly set to False, a</span>
+<span class="sd">        ValueError will be raised if the data section is already</span>
+<span class="sd">        populated.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_data</span><span class="p">()</span> <span class="ow">and</span> <span class="n">noclobber</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;clobbering existing data not permitted for dispatch </span><span class="si">%s</span><span class="s1">&#39;</span>
+                <span class="s1">&#39;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;origin&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+                <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_or_copy</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Scott Brown.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

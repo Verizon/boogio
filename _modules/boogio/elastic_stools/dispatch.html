@@ -1,0 +1,973 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>boogio.elastic_stools.dispatch &mdash; boogio 1.0.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="boogio 1.0.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> boogio
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../boogio.aws_informer.html"> aws_informer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../boogio.aws_surveyor.html"> aws_surveyor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../boogio.aws_reporter.html"> aws_reporter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../boogio.sqs_sifter.html"> sqs_sifter</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">boogio</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>boogio.elastic_stools.dispatch</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for boogio.elastic_stools.dispatch</h1><div class="highlight"><pre>
+<span></span><span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<span class="c1"># (c) Verizon Inc. 2015</span>
+<span class="c1"># Author: Scott Brown</span>
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">dispatch.py</span>
+
+<span class="sd">Manage dispatch schema instances for Opticon reports.</span>
+
+<span class="sd">The jsonschema schemas for this package require</span>
+<span class="sd">http://pypi.python.org/pypi/rfc3987/ and</span>
+<span class="sd">http://pypi.python.org/pypi/strict-rfc3339. Install with</span>
+
+<span class="sd">    pip install rfc3987</span>
+<span class="sd">    pip install strict-rfc3339</span>
+
+<span class="sd">How to use the Dispatch class:</span>
+
+<span class="sd">The Dispatch class ensures that the proper fields are included in</span>
+<span class="sd">elements of the dispatch list. The Dispatch schema</span>
+<span class="sd">is a dictionary with three top level keys:</span>
+
+<span class="sd">  * _meta -- specification of the json schema.</span>
+<span class="sd">  * origin -- information regarding the creation of the dispatch, such</span>
+<span class="sd">    as timestamps, servers involved, and scripts or tools used.</span>
+<span class="sd">  * commentary -- descriptive copy provided for use in reports and</span>
+<span class="sd">    other &quot;downstream&quot; presentations of the dispatch.</span>
+
+<span class="sd">Dispatch instances store the dispatch record in the internal _dispatch</span>
+<span class="sd">variable. The value in this variable will be checked for schmema</span>
+<span class="sd">compliance in the following circumstances:</span>
+
+<span class="sd">  * When the instance&#39;s is_valid() method is called.</span>
+<span class="sd">  * When the instance&#39;s validate() method is called.</span>
+<span class="sd">  * When the instance&#39;s json_dumps() method is called without explicitly</span>
+<span class="sd">    setting the validate parameter to False.</span>
+
+<span class="sd">The Dispatch.is_valid() method will return True or False indicating</span>
+<span class="sd">validity of the _dispatch.</span>
+
+<span class="sd">The Dispatch.validate() and Dispatch.json_dumps() methods will call the</span>
+<span class="sd">jsonschema.Draft4Validator() method to validate the _dispatch, which</span>
+<span class="sd">will raise an exception if the _dispatch isn&#39;t valid.</span>
+
+<span class="sd">Dispatch instance _dispatch values can be populated when the instance is</span>
+<span class="sd">initialized, and can be updated using methods with various rules for</span>
+<span class="sd">preserving, modifying or replacing existing values.</span>
+
+<span class="sd">Several initialization and update methods accept a skip_validation</span>
+<span class="sd">parameter with a default value of True, and will validate the</span>
+<span class="sd">resulting dispatch unless this parameter is explicity set to False. For</span>
+<span class="sd">example, when constructing Dispatch instances there will be cases where</span>
+<span class="sd">the instance is only partially complete and is not yet fully valid,</span>
+<span class="sd">while in other cases a known valid Dispatch instance is being modified</span>
+<span class="sd">and should remain valid.</span>
+
+<span class="sd">Other update methods accept a validation parameter with a default</span>
+<span class="sd">value of True, and will validate the resulting dispatch unless this</span>
+<span class="sd">parameter is explicitly set to False. These are generally methods like</span>
+<span class="sd">Dispatch.add_timestamps(), which modify subelements of the calling</span>
+<span class="sd">Dispatch instance that have their own subschemas.</span>
+
+<span class="sd">In all cases where validation checks fail, the calling Dispatch will</span>
+<span class="sd">not be modified.</span>
+
+<span class="sd">In general, any time values for the section of a _dispatch dict are</span>
+<span class="sd">passed in a parameter, the parameter can hold either the section</span>
+<span class="sd">structure directly or the path to a JSON file containing the section</span>
+<span class="sd">structure. Thus, e.g., the _meta parameter to an updating method may</span>
+<span class="sd">be either the actual _meta field value or a string specifying the path</span>
+<span class="sd">to a JSON file holding the value.</span>
+
+<span class="sd">Modification and update methods::</span>
+
+<span class="sd">    Dispatch.merge(dispatch)</span>
+<span class="sd">    Dispatch.merge(**dispatch_dict)</span>
+
+<span class="sd">    Set values of undefined elements of the calling Dispatch instance to</span>
+<span class="sd">    the corresponding values of the indicated dispatch_dict or Dispatch</span>
+<span class="sd">    instance. Keys in the merge source that already exist in the calling</span>
+<span class="sd">    Dispatch instance will be ignored; the calling Dispatch instance&#39;s</span>
+<span class="sd">    values for those keys will not be changed.</span>
+
+<span class="sd">::</span>
+
+<span class="sd">    Dispatch.merge(dispatch, noclobber=False)</span>
+<span class="sd">    Dispatch.merge(**dispatch_dict, noclobber=False)</span>
+
+<span class="sd">    Set value of elements of the calling Dispatch instance with the</span>
+<span class="sd">    corresponding elements of the indicated dispatch_dict or Dispatch</span>
+<span class="sd">    instance. If a key exists in both the calling Dispatch instance and</span>
+<span class="sd">    the merge source, the value in the calling instance will be</span>
+<span class="sd">    overwritten.</span>
+
+<span class="sd">Dispatch.add_timestamp(key, timestamp)</span>
+
+<span class="sd">  Add timestamps to the calling Dispatch instance. Duplicates of</span>
+<span class="sd">  existing timestamps will be ignored, in compliance with the schema.</span>
+
+<span class="sd">Dispatch.set_source(source)</span>
+
+<span class="sd">  Set the calling Dispatch origin source.</span>
+
+<span class="sd">Dispatch.add_target(target)</span>
+
+<span class="sd">  Add targets to the calling Dispatch instance. Duplicates of existing</span>
+<span class="sd">  targets will be ignored, in compliance with the schema.</span>
+
+<span class="sd">Dispatch.set_generator(type, generator)</span>
+
+<span class="sd">  Set the calling Dispatch origin generator field.</span>
+
+<span class="sd">Dispatch.set_commentary_fields(commentary)</span>
+
+<span class="sd">  Set the calling Dispatch&#39;s commentary fields as indicated by the</span>
+<span class="sd">  fields in the commentary parameter.</span>
+
+<span class="sd">Dispatch.append_commentary(commentary)</span>
+
+<span class="sd">  Append the indicated commentary text to the corresponding commentary</span>
+<span class="sd">  fields. For string valued commentary, the text will be appended to</span>
+<span class="sd">  any existing text. For list-of-strings valued commentary, the text</span>
+<span class="sd">  will be appended as a list element.</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">jsonschema</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<span class="c1"># is_valid</span>
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="is_valid"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dispatch.is_valid">[docs]</a><span class="k">def</span> <span class="nf">is_valid</span><span class="p">(</span><span class="n">candidate</span><span class="p">,</span> <span class="n">schema_name</span><span class="o">=</span><span class="s1">&#39;dispatch&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Validate a possible dispatch against the dispatch schema.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    candidate -- a possible dispatch dict.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    True if jsonschema.validate indicates candidate is a valid instance</span>
+<span class="sd">    of the dispatch schema; false otherwise.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">schema</span> <span class="o">=</span> <span class="n">Dispatch</span><span class="o">.</span><span class="n">schemas</span><span class="p">[</span><span class="n">schema_name</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">jsonschema</span><span class="o">.</span><span class="n">Draft4Validator</span><span class="p">(</span>
+        <span class="n">schema</span><span class="p">,</span>
+        <span class="n">format_checker</span><span class="o">=</span><span class="n">jsonschema</span><span class="o">.</span><span class="n">FormatChecker</span><span class="p">(),</span>
+        <span class="n">resolver</span><span class="o">=</span><span class="n">Dispatch</span><span class="o">.</span><span class="n">schema_resolver</span><span class="p">()</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span></div>
+
+
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<span class="c1"># validate</span>
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="validate"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dispatch.validate">[docs]</a><span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="n">candidate</span><span class="p">,</span> <span class="n">schema_name</span><span class="o">=</span><span class="s1">&#39;dispatch&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Validate a possible dispatch against the dispatch schema.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    candidate -- a possible dispatch dict.</span>
+
+<span class="sd">    Raises an exception in Draft4Validator.validate() if candidate</span>
+<span class="sd">    is not a valid instance of the dispatch schema.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">schema</span> <span class="o">=</span> <span class="n">Dispatch</span><span class="o">.</span><span class="n">schemas</span><span class="p">[</span><span class="n">schema_name</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">jsonschema</span><span class="o">.</span><span class="n">Draft4Validator</span><span class="p">(</span>
+        <span class="n">schema</span><span class="p">,</span>
+        <span class="n">format_checker</span><span class="o">=</span><span class="n">jsonschema</span><span class="o">.</span><span class="n">FormatChecker</span><span class="p">(),</span>
+        <span class="n">resolver</span><span class="o">=</span><span class="n">Dispatch</span><span class="o">.</span><span class="n">schema_resolver</span><span class="p">()</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span>
+            <span class="n">candidate</span>
+            <span class="p">)</span></div>
+
+
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<span class="c1"># Base</span>
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="Base"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dispatch.Base">[docs]</a><span class="k">class</span> <span class="nc">Base</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Absorb all kwargs passed to this point.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<span class="c1"># Dispatch</span>
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="Dispatch"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dispatch.Dispatch">[docs]</a><span class="k">class</span> <span class="nc">Dispatch</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Represent the information regarding an Opticon dispatch creation</span>
+<span class="sd">    and description.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">SCHEMA_VERSION</span> <span class="o">=</span> <span class="s2">&quot;1.0.0&quot;</span>
+    <span class="n">SCHEMA_NAME</span> <span class="o">=</span> <span class="s2">&quot;dispatch&quot;</span>
+
+    <span class="n">schema_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span>
+        <span class="s2">&quot;schema&quot;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Load all the schema element definitions.</span>
+    <span class="n">schema_file_suffix</span> <span class="o">=</span> <span class="s2">&quot;schema.json&quot;</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">schema_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">schema_path</span><span class="p">,</span> <span class="n">f</span><span class="p">))</span>
+        <span class="p">]</span>
+
+    <span class="n">schema_names</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c1"># Reduce by 1 to miss the period separator.</span>
+        <span class="n">f</span><span class="p">[:</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">schema_file_suffix</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span>
+        <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">schema_file_suffix</span><span class="p">):]</span> <span class="o">==</span> <span class="n">schema_file_suffix</span>
+        <span class="p">]</span>
+
+    <span class="c1"># Load all the schemas, indexing by the part of the schema filename</span>
+    <span class="c1"># prior to the &quot;.schema.json&quot; suffix.</span>
+    <span class="n">schemas</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">schema_names</span><span class="p">:</span>
+        <span class="n">schemas</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="n">name</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="n">schema_path</span><span class="p">,</span>
+                        <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">name</span><span class="p">,</span> <span class="n">schema_file_suffix</span><span class="p">])</span>
+                        <span class="p">)</span>
+                    <span class="p">))</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+
+    <span class="n">class_schema</span> <span class="o">=</span> <span class="n">schemas</span><span class="p">[</span><span class="s1">&#39;dispatch&#39;</span><span class="p">]</span>
+
+    <span class="c1"># This will resolve schema external file references relative to</span>
+    <span class="c1"># the schema subdirectory of this file&#39;s location.</span>
+    <span class="n">_schema_resolver</span> <span class="o">=</span> <span class="n">jsonschema</span><span class="o">.</span><span class="n">RefResolver</span><span class="p">(</span>
+        <span class="s1">&#39;file://&#39;</span> <span class="o">+</span> <span class="n">schema_path</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span><span class="p">,</span>
+        <span class="kc">None</span>
+        <span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Dispatch.schema_resolver"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dispatch.Dispatch.schema_resolver">[docs]</a>    <span class="k">def</span> <span class="nf">schema_resolver</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_schema_resolver</span></div>
+
+    <span class="c1"># Raise an error now if there&#39;s anything invalid in the schema.</span>
+    <span class="c1"># The jsonschema validate() call will raise a SchemaError if the</span>
+    <span class="c1"># schema isn&#39;t valid. We ignore the expected ValidationError here.</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">jsonschema</span><span class="o">.</span><span class="n">validate</span><span class="p">({},</span> <span class="n">class_schema</span><span class="p">,</span> <span class="n">resolver</span><span class="o">=</span><span class="n">_schema_resolver</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">jsonschema</span><span class="o">.</span><span class="n">ValidationError</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="c1"># Fields not defined in subclasses sometimes need to be</span>
+    <span class="c1"># iterated over.</span>
+    <span class="n">_core_dispatch_fields</span> <span class="o">=</span> <span class="n">class_schema</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># _load_or_copy</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_load_or_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Load content from a json file or do a deep copy of content</span>
+<span class="sd">        depending on whether entity is the name of a json loadable</span>
+<span class="sd">        file.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+
+        <span class="c1"># TypeError if entity isn&#39;t a string.</span>
+        <span class="c1"># IOError if entity is a string that isn&#39;t a filename.</span>
+        <span class="c1"># ValueError if entity is a filename but the file isn&#39;t JSON.</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">IOError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># __init__</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Initialize a Dispatch instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;_meta&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;schema_version&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">SCHEMA_VERSION</span><span class="p">,</span>
+                <span class="s1">&#39;schema&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">SCHEMA_NAME</span>
+                <span class="p">},</span>
+            <span class="s1">&#39;origin&#39;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s1">&#39;commentary&#39;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s1">&#39;skip_validation&#39;</span><span class="p">:</span> <span class="kc">True</span>
+            <span class="p">}</span>
+
+        <span class="n">params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">_meta</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;_meta&#39;</span><span class="p">)</span>
+        <span class="n">origin</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;origin&#39;</span><span class="p">)</span>
+        <span class="n">commentary</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;commentary&#39;</span><span class="p">)</span>
+        <span class="n">skip_validation</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;skip_validation&#39;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">Dispatch</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="n">working_dispatch</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;_meta&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_or_copy</span><span class="p">(</span><span class="n">_meta</span><span class="p">),</span>
+            <span class="s1">&#39;origin&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_or_copy</span><span class="p">(</span><span class="n">origin</span><span class="p">),</span>
+            <span class="s1">&#39;commentary&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_or_copy</span><span class="p">(</span><span class="n">commentary</span><span class="p">)</span>
+            <span class="p">}</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">skip_validation</span><span class="p">:</span>
+            <span class="n">validate</span><span class="p">(</span><span class="n">working_dispatch</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">working_dispatch</span><span class="p">)</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># validate</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="Dispatch.validate"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dispatch.Dispatch.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schema_name</span><span class="o">=</span><span class="s1">&#39;dispatch&#39;</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Check validity of this dispatch.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">validate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">,</span> <span class="n">schema_name</span><span class="o">=</span><span class="n">schema_name</span><span class="p">)</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># is_valid</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="Dispatch.is_valid"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dispatch.Dispatch.is_valid">[docs]</a>    <span class="k">def</span> <span class="nf">is_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schema_name</span><span class="o">=</span><span class="s1">&#39;dispatch&#39;</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Indicate validity of this dispatch.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">is_valid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">,</span> <span class="n">schema_name</span><span class="o">=</span><span class="n">schema_name</span><span class="p">)</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># __getitem__</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="Dispatch.__getitem__"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dispatch.Dispatch.__getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Internal &quot;listy&quot; lookup of top level fields.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()[</span><span class="n">field</span><span class="p">]</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># to_dict</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="Dispatch.to_dict"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dispatch.Dispatch.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Return a dictionary representation of a Dispatch instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">)</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># json_dumps</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="Dispatch.json_dumps"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dispatch.Dispatch.json_dumps">[docs]</a>    <span class="k">def</span> <span class="nf">json_dumps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">validation</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Return a JSON representation of a Dispatch instance.</span>
+
+<span class="sd">        This is generally going to be used as an output method on the</span>
+<span class="sd">        way to generating files for use down the road, so we enforce</span>
+<span class="sd">        validation unless explicitly instructed otherwise.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="n">validation</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># json_dump</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="Dispatch.json_dump"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dispatch.Dispatch.json_dump">[docs]</a>    <span class="k">def</span> <span class="nf">json_dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">validation</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Write a JSON representation of a Dispatch instance to file-like</span>
+<span class="sd">        object fp.</span>
+
+<span class="sd">        This is generally going to be used as an output method on the</span>
+<span class="sd">        way to generating files for use down the road, so we enforce</span>
+<span class="sd">        validation unless explicitly instructed otherwise.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="n">validation</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="n">fp</span><span class="p">)</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># json_loads</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="Dispatch.json_loads"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dispatch.Dispatch.json_loads">[docs]</a>    <span class="k">def</span> <span class="nf">json_loads</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_string</span><span class="p">,</span> <span class="n">validation</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Load a JSON representation of a Dispatch instance.</span>
+
+<span class="sd">        This requires the _dispatch content in the source JSON be valid per</span>
+<span class="sd">        the Dispatch schema unless the validate parameter is explicitly set</span>
+<span class="sd">        to False.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">working_dispatch</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json_string</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">validation</span><span class="p">:</span>
+            <span class="n">validate</span><span class="p">(</span><span class="n">working_dispatch</span><span class="p">)</span>
+
+        <span class="c1"># No need for a deepcopy, as this is freshly allocated.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span> <span class="o">=</span> <span class="n">working_dispatch</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># json_load</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="Dispatch.json_load"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dispatch.Dispatch.json_load">[docs]</a>    <span class="k">def</span> <span class="nf">json_load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">validation</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Write a JSON representation of a Dispatch instance to file-like</span>
+<span class="sd">        object fp.</span>
+
+<span class="sd">        This is generally going to be used as an output method on the</span>
+<span class="sd">        way to generating files for use down the road, so we enforce</span>
+<span class="sd">        validation unless explicitly instructed otherwise.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">working_dispatch</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">validation</span><span class="p">:</span>
+            <span class="n">validate</span><span class="p">(</span><span class="n">working_dispatch</span><span class="p">)</span>
+
+        <span class="c1"># No need for a deepcopy, as this is freshly allocated.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span> <span class="o">=</span> <span class="n">working_dispatch</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># _items_exist</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="k">def</span> <span class="nf">_items_exist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidate</span><span class="p">,</span> <span class="n">existing_dicts</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Return True if all items in candidate are already present in one</span>
+<span class="sd">        of the dicts in the existing_dicts list, False otherwise. This is</span>
+<span class="sd">        used to check and skip duplicate entries when desired.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">duplicate</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">existing</span> <span class="ow">in</span> <span class="n">existing_dicts</span><span class="p">:</span>
+            <span class="n">duplicate</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">candidate</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">existing</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">duplicate</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">continue</span>
+
+        <span class="k">return</span> <span class="n">duplicate</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># _timestamp_item</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="k">def</span> <span class="nf">_timestamp_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Convert a key-value into a {&#39;key&#39;: key, &#39;value&#39;: value} dict.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">timestamp</span><span class="p">}</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># add_timestamp</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="Dispatch.add_timestamp"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dispatch.Dispatch.add_timestamp">[docs]</a>    <span class="k">def</span> <span class="nf">add_timestamp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Add a timestamp entry.</span>
+
+<span class="sd">        Before modifying the Dispatch instance, the new timestamp is first</span>
+<span class="sd">        checked for schema validity. If this fails, a ValidationError is</span>
+<span class="sd">        raised and the Dispatch instance is not modified.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">new_ts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timestamp_item</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">)</span>
+
+        <span class="c1"># Always check to make sure the timestamp is valid.</span>
+        <span class="n">validate</span><span class="p">(</span><span class="n">new_ts</span><span class="p">,</span> <span class="n">schema_name</span><span class="o">=</span><span class="s1">&#39;timestamp&#39;</span><span class="p">)</span>
+
+        <span class="c1"># We didn&#39;t get an Exception in validate(), so it&#39;s OK to proceed.</span>
+        <span class="k">if</span> <span class="s1">&#39;origin&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">[</span><span class="s1">&#39;origin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="s1">&#39;timestamps&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">[</span><span class="s1">&#39;origin&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">[</span><span class="s1">&#39;origin&#39;</span><span class="p">][</span><span class="s1">&#39;timestamps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">[</span><span class="s1">&#39;origin&#39;</span><span class="p">][</span><span class="s1">&#39;timestamps&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_ts</span><span class="p">)</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># set_source</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="Dispatch.set_source"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dispatch.Dispatch.set_source">[docs]</a>    <span class="k">def</span> <span class="nf">set_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Add a source entry.</span>
+
+<span class="sd">        Before modifying the Dispatch instance, the new source is first</span>
+<span class="sd">        checked for schema validity. If this fails, a ValidationError is</span>
+<span class="sd">        raised and the Dispatch instance is not modified.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">source_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_or_copy</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+        <span class="c1"># Always check to make sure the source is valid.</span>
+        <span class="n">validate</span><span class="p">(</span><span class="n">source_data</span><span class="p">,</span> <span class="n">schema_name</span><span class="o">=</span><span class="s1">&#39;network_node&#39;</span><span class="p">)</span>
+
+        <span class="c1"># We didn&#39;t get an Exception in validate(), so it&#39;s OK to proceed.</span>
+        <span class="k">if</span> <span class="s1">&#39;origin&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">[</span><span class="s1">&#39;origin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">[</span><span class="s1">&#39;origin&#39;</span><span class="p">][</span><span class="s1">&#39;source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">source_data</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># add_target</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="Dispatch.add_target"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dispatch.Dispatch.add_target">[docs]</a>    <span class="k">def</span> <span class="nf">add_target</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Add a target entry.</span>
+
+<span class="sd">        Before modifying the Dispatch instance, the new target is first</span>
+<span class="sd">        checked for schema validity. If this fails, a ValidationError is</span>
+<span class="sd">        raised and the Dispatch instance is not modified.</span>
+
+<span class="sd">        Duplicates of existing target entries will be skipped. In this</span>
+<span class="sd">        context, a new target is considered a duplicate of an existing</span>
+<span class="sd">        target if all the items in the new target are items in the existing</span>
+<span class="sd">        target.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">target_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_or_copy</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="c1"># Always check to make sure the target is valid.</span>
+        <span class="n">validate</span><span class="p">(</span><span class="n">target_data</span><span class="p">,</span> <span class="n">schema_name</span><span class="o">=</span><span class="s1">&#39;network_node&#39;</span><span class="p">)</span>
+
+        <span class="c1"># We didn&#39;t get an Exception in validate(), so it&#39;s OK to proceed.</span>
+        <span class="k">if</span> <span class="s1">&#39;origin&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">[</span><span class="s1">&#39;origin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="s1">&#39;targets&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">[</span><span class="s1">&#39;origin&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">[</span><span class="s1">&#39;origin&#39;</span><span class="p">][</span><span class="s1">&#39;targets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Check that the new target isn&#39;t a duplicate.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_items_exist</span><span class="p">(</span><span class="n">target_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">[</span><span class="s1">&#39;origin&#39;</span><span class="p">][</span><span class="s1">&#39;targets&#39;</span><span class="p">]):</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">[</span><span class="s1">&#39;origin&#39;</span><span class="p">][</span><span class="s1">&#39;targets&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">target_data</span><span class="p">)</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># set_generator</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="Dispatch.set_generator"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dispatch.Dispatch.set_generator">[docs]</a>    <span class="k">def</span> <span class="nf">set_generator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">generator</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Add a generator entry.</span>
+
+<span class="sd">        Before modifying the Dispatch instance, the new generator is first</span>
+<span class="sd">        checked for schema validity. If this fails, a ValidationError is</span>
+<span class="sd">        raised and the Dispatch instance is not modified.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># legal_types = [&#39;data&#39;, &#39;dispatch&#39;]</span>
+        <span class="c1"># if type not in legal_types:</span>
+        <span class="c1">#     raise ValueError(</span>
+        <span class="c1">#         &#39;Unknown generator type: %s (expected one of %s)&#39;</span>
+        <span class="c1">#         &#39;&#39; % (type, legal_types)</span>
+        <span class="c1">#         )</span>
+
+        <span class="c1"># generator_key = type + &#39;_generator&#39;</span>
+        <span class="n">generator_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_or_copy</span><span class="p">(</span><span class="n">generator</span><span class="p">)</span>
+
+        <span class="c1"># Always check to make sure the generator is valid.</span>
+        <span class="n">validate</span><span class="p">(</span><span class="n">generator_data</span><span class="p">,</span> <span class="n">schema_name</span><span class="o">=</span><span class="s1">&#39;generator&#39;</span><span class="p">)</span>
+
+        <span class="c1"># We didn&#39;t get an Exception in validate(), so it&#39;s OK to proceed.</span>
+        <span class="k">if</span> <span class="s1">&#39;origin&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">[</span><span class="s1">&#39;origin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># self._dispatch[&#39;origin&#39;][generator_key] = generator_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">[</span><span class="s1">&#39;origin&#39;</span><span class="p">][</span><span class="s1">&#39;generator&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">generator_data</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># _update_commentary_fields</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="k">def</span> <span class="nf">_update_commentary_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">commentary</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Update commentary fields.</span>
+
+<span class="sd">        This helper method is called by set_commentary_fields and</span>
+<span class="sd">        append_to_commentary_fields using the append parameter to</span>
+<span class="sd">        control the operation.</span>
+
+<span class="sd">        Including a field that&#39;s not defined in the schema for the</span>
+<span class="sd">        commentary section will result in a ValueError.</span>
+
+<span class="sd">        Before modifying the Dispatch instance, the new commentary is first</span>
+<span class="sd">        checked for schema validity. If this fails, a ValidationError is</span>
+<span class="sd">        raised and the Dispatch instance is not modified.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">commentary_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_or_copy</span><span class="p">(</span><span class="n">commentary</span><span class="p">)</span>
+
+        <span class="c1"># Extract a list of the legal fields per the schema.</span>
+        <span class="c1"># commentary_schema = self.schema[&#39;definitions&#39;][&#39;commentary_schema&#39;]</span>
+        <span class="n">commentary_schema</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">schemas</span><span class="p">[</span><span class="s1">&#39;commentary&#39;</span><span class="p">]</span>
+
+        <span class="n">legal_commentary_fields</span> <span class="o">=</span> <span class="n">commentary_schema</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+        <span class="n">commentary_string_fields</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">f</span> <span class="k">for</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span> <span class="ow">in</span> <span class="n">commentary_schema</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="s1">&#39;type&#39;</span> <span class="ow">in</span> <span class="n">s</span> <span class="ow">and</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;string&#39;</span>
+            <span class="p">]</span>
+        <span class="n">commentary_list_fields</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">legal_commentary_fields</span>
+            <span class="k">if</span> <span class="n">f</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">commentary_string_fields</span>
+            <span class="p">]</span>
+
+        <span class="n">illegal_fields</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">commentary_data</span><span class="p">:</span>
+
+            <span class="c1"># Every field needs to be in the schema.</span>
+            <span class="k">if</span> <span class="n">field</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">legal_commentary_fields</span><span class="p">:</span>
+                <span class="n">illegal_fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+
+            <span class="c1"># We allow passing in a single string for setting these</span>
+            <span class="c1"># fields, and wrap it in an array for schema compliance.</span>
+            <span class="k">elif</span> <span class="p">(</span>
+                    <span class="n">field</span> <span class="ow">in</span> <span class="n">commentary_list_fields</span>
+                    <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">commentary_data</span><span class="p">[</span><span class="n">field</span><span class="p">],</span> <span class="nb">list</span><span class="p">)</span>
+                    <span class="p">):</span>
+                <span class="n">commentary_data</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">commentary_data</span><span class="p">[</span><span class="n">field</span><span class="p">]]</span>
+
+        <span class="c1"># If any of the fields we were passed aren&#39;t legal per the schema,</span>
+        <span class="c1"># raise a ValueError now.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">illegal_fields</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;Illegal commentary fields: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">illegal_fields</span><span class="p">)</span>
+                <span class="p">)</span>
+
+        <span class="c1"># Always check to make sure the commentary is valid.</span>
+        <span class="n">validate</span><span class="p">(</span><span class="n">commentary_data</span><span class="p">,</span> <span class="n">schema_name</span><span class="o">=</span><span class="s1">&#39;commentary&#39;</span><span class="p">)</span>
+
+        <span class="c1"># We didn&#39;t get an Exception in validate(), so it&#39;s OK to proceed.</span>
+        <span class="k">if</span> <span class="s1">&#39;commentary&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">[</span><span class="s1">&#39;commentary&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">commentary_data</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="n">append</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">field</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">[</span><span class="s1">&#39;commentary&#39;</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">[</span><span class="s1">&#39;commentary&#39;</span><span class="p">][</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="p">[]</span> <span class="k">if</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">commentary_list_fields</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+                        <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">[</span><span class="s1">&#39;commentary&#39;</span><span class="p">][</span><span class="n">field</span><span class="p">]</span> <span class="o">+=</span> <span class="n">commentary_data</span><span class="p">[</span><span class="n">field</span><span class="p">]</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">[</span><span class="s1">&#39;commentary&#39;</span><span class="p">][</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">commentary_data</span><span class="p">[</span><span class="n">field</span><span class="p">]</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># set_commentary_fields</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="Dispatch.set_commentary_fields"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dispatch.Dispatch.set_commentary_fields">[docs]</a>    <span class="k">def</span> <span class="nf">set_commentary_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">commentary</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Set commentary fields.</span>
+
+<span class="sd">        This passes through to _update_commentary_fields(..., append=False).</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_commentary_fields</span><span class="p">(</span><span class="n">commentary</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># append_commentary_fields</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="Dispatch.append_commentary_fields"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dispatch.Dispatch.append_commentary_fields">[docs]</a>    <span class="k">def</span> <span class="nf">append_commentary_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">commentary</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Set commentary fields.</span>
+
+<span class="sd">        This passes through to _update_commentary_fields(..., append=True).</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_commentary_fields</span><span class="p">(</span><span class="n">commentary</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="c1"># merge</span>
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="Dispatch.merge"><a class="viewcode-back" href="../../../boogio.elastic_stools.html#boogio.elastic_stools.dispatch.Dispatch.merge">[docs]</a>    <span class="k">def</span> <span class="nf">merge</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">other_dispatch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">noclobber</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">skip_validation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">_meta</span><span class="o">=</span><span class="p">{},</span>
+            <span class="n">origin</span><span class="o">=</span><span class="p">{},</span>
+            <span class="n">commentary</span><span class="o">=</span><span class="p">{}</span>
+            <span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Copy another dispatch&#39;s information into this dispatch.</span>
+
+<span class="sd">        The source for copying can be specified either by passing</span>
+<span class="sd">        another Dispatch instance as the first parameter, or by</span>
+<span class="sd">        passing named parameters for each section of a _dispatch. If</span>
+<span class="sd">        both types of source are passed, the values from the Dispatch</span>
+<span class="sd">        instance are first merged, followed by those of the individual</span>
+<span class="sd">        sections.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            other_dispatch -- A Dispatch instance to merge from.</span>
+
+<span class="sd">            _meta -- Specific _meta section values to merge.</span>
+<span class="sd">            origin -- Specific origin section values to merge.</span>
+<span class="sd">            commentary -- Specific commentary section values to merge.</span>
+
+<span class="sd">            noclobber -- If True, fields that exist in sections of the</span>
+<span class="sd">                calling Dispatch instance won&#39;t be changed. If False,</span>
+<span class="sd">                such fields will be set to the new values.</span>
+<span class="sd">                Default: True</span>
+
+<span class="sd">            skip_validation -- If True, the _dispatch resulting from</span>
+<span class="sd">                this cloning will not be validated against the Dispatch</span>
+<span class="sd">                schema. If False, it will be validated. If validation</span>
+<span class="sd">                fails a ValidationError will be raised and the original</span>
+<span class="sd">                _dispatch will be left unaltered.</span>
+<span class="sd">                Default: True</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+        <span class="k">def</span> <span class="nf">_copy_required_field_values</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">dest</span><span class="p">,</span> <span class="n">noclobber</span><span class="p">):</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Copy values from the source dispatch dict structure to the dest</span>
+<span class="sd">            dispatch dict structure, making sure to respect the noclobber</span>
+<span class="sd">            parameter.</span>
+
+<span class="sd">            This alters dest, and returns None.</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+            <span class="n">copy_keys</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">field</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="c1"># If noclobber is True, we omit keys that already</span>
+                    <span class="c1"># occur in dest.</span>
+                    <span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">field_value</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">noclobber</span><span class="p">)</span>
+                    <span class="ow">or</span> <span class="p">(</span><span class="n">field</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dest</span><span class="p">)</span>
+                    <span class="ow">or</span> <span class="p">(</span><span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dest</span><span class="p">[</span><span class="n">field</span><span class="p">])</span>
+                    <span class="p">]</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">field_value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_core_dispatch_fields</span>
+                <span class="p">}</span>
+            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">copy_keys</span><span class="p">:</span>
+
+                <span class="k">if</span> <span class="n">field</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dest</span><span class="p">:</span>
+                    <span class="n">dest</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">copy_keys</span><span class="p">[</span><span class="n">field</span><span class="p">]:</span>
+                    <span class="c1"># We already weeded out clobbering, if needed.</span>
+                    <span class="n">dest</span><span class="p">[</span><span class="n">field</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_or_copy</span><span class="p">(</span><span class="n">source</span><span class="p">[</span><span class="n">field</span><span class="p">][</span><span class="n">key</span><span class="p">])</span>
+        <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+
+        <span class="c1"># First we create a separate dispatch to construct our updates, so</span>
+        <span class="c1"># we don&#39;t alter this instance&#39;s information if validation fails.</span>
+        <span class="n">workset</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">)</span>
+
+        <span class="c1"># If other_dispatch is defined, we first update with its information.</span>
+        <span class="k">if</span> <span class="n">other_dispatch</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_copy_required_field_values</span><span class="p">(</span>
+                <span class="n">other_dispatch</span><span class="o">.</span><span class="n">_dispatch</span><span class="p">,</span>
+                <span class="n">workset</span><span class="p">,</span>
+                <span class="n">noclobber</span>
+                <span class="p">)</span>
+
+        <span class="c1"># Then we update with the dispatch fields explicitly defined.</span>
+        <span class="n">_copy_required_field_values</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;_meta&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_or_copy</span><span class="p">(</span><span class="n">_meta</span><span class="p">),</span>
+                <span class="s1">&#39;origin&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_or_copy</span><span class="p">(</span><span class="n">origin</span><span class="p">),</span>
+                <span class="s1">&#39;commentary&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_or_copy</span><span class="p">(</span><span class="n">commentary</span><span class="p">)</span>
+                <span class="p">},</span>
+            <span class="n">workset</span><span class="p">,</span>
+            <span class="n">noclobber</span>
+            <span class="p">)</span>
+
+        <span class="c1"># If validation isn&#39;t skipped, we check validity.</span>
+        <span class="c1"># This raises an exception if validation fails.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">skip_validation</span><span class="p">:</span>
+            <span class="n">validate</span><span class="p">(</span><span class="n">workset</span><span class="p">)</span>
+
+        <span class="c1"># If everything is OK, we copy our constructed dispatch.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">workset</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Scott Brown.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

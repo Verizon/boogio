@@ -1,0 +1,1496 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>boogio.aws_surveyor &mdash; boogio 1.0.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="boogio 1.0.0 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> boogio
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../boogio.aws_informer.html"> aws_informer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../boogio.aws_surveyor.html"> aws_surveyor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../boogio.aws_reporter.html"> aws_reporter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../boogio.sqs_sifter.html"> sqs_sifter</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">boogio</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>boogio.aws_surveyor</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for boogio.aws_surveyor</h1><div class="highlight"><pre>
+<span></span><span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<span class="c1"># (c) Verizon Inc. 2016</span>
+<span class="c1"># Author: Scott Brown</span>
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+
+<span class="sd">&#39;&#39;&#39;Manage sets of ``AWSInformer`` instances across accounts and regions.</span>
+
+<span class="sd">An ``AWSSurveyor`` instance manages AWSMediator and ``AWSInformer``</span>
+<span class="sd">instances across multiple profiles and regions.</span>
+
+<span class="sd">Use ``AWSSurveyor`` instances with a workflow like the following.</span>
+
+<span class="sd">    #.  Initialize an ``AWSSurveyor`` instance, defining values for</span>
+<span class="sd">        profiles, regions and entity types if desired.</span>
+
+<span class="sd">    #.  Use ``AWSSurveyor.survey()`` to retrieve records from AWS and</span>
+<span class="sd">        create ``AWSInformer`` instances to manage them. You can use</span>
+<span class="sd">        the existing presets for profiles, regions and entity types,</span>
+<span class="sd">        update the presets, or specify survey-specific values.</span>
+
+<span class="sd">    #.  Use ``AWSSurveyor.informers()`` to retrieve informers from the</span>
+<span class="sd">        surveyor for further use.</span>
+
+<span class="sd">.. _aws_surveyor_initialization_package_label:</span>
+
+<span class="sd">AWSSurveyor Initialization</span>
+<span class="sd">--------------------------</span>
+
+<span class="sd">An ``AWSSurveyor`` maintains preset lists of the profiles, regions and</span>
+<span class="sd">entity types that will be used by default when ``survey()`` is called.</span>
+<span class="sd">These preset values can be assigned when a surveyor is created and can</span>
+<span class="sd">be updated afterwards. Common preset values can be saved in</span>
+<span class="sd">configuration files as blocks of JSON such as the following.</span>
+
+<span class="sd">    ::</span>
+
+<span class="sd">        {</span>
+<span class="sd">            &quot;profiles&quot;: [&quot;some_profile&quot;, &quot;another_profile&quot;],</span>
+<span class="sd">            &quot;regions&quot;: [&quot;us-east-1&quot;, &quot;us-west-1&quot;, &quot;us-west-2&quot;],</span>
+<span class="sd">            &quot;entity_types&quot;: [&quot;ec2&quot;, &quot;security_group&quot;, &quot;subnet&quot;, &quot;vpc&quot;]</span>
+<span class="sd">        }</span>
+
+<span class="sd">If no presets are provided when an ``AWSSurveyor`` instance is created</span>
+<span class="sd">and :file:`$HOME/.aws/aws_surveyor.cfg`` exists, it will be parsed as</span>
+<span class="sd">a JSON file to determine presets.</span>
+
+<span class="sd">To read from another configuration file, pass the local or absolute</span>
+<span class="sd">path to the file as the value of the ``config_path`` initialization</span>
+<span class="sd">argument.</span>
+
+<span class="sd">To suppress reading of preset values from</span>
+<span class="sd">:file:`$HOME/.aws/aws_surveyor.cfg``, pass an empty string as the</span>
+<span class="sd">value of the ``config_path`` argument at initialization.</span>
+
+
+
+<span class="sd">    **Examples**</span>
+
+<span class="sd">    *   Initialize presets from :file:`$HOME/.aws/aws_surveyor.cfg`:</span>
+
+<span class="sd">        ::</span>
+
+<span class="sd">            &gt;&gt;&gt; surveyor = AWSSurveyor()</span>
+
+<span class="sd">    *   Initialize presets from :file:`aws_surveyor.cfg` in the</span>
+<span class="sd">        current working directory:</span>
+
+<span class="sd">        ::</span>
+
+<span class="sd">            &gt;&gt;&gt; surveyor = AWSSurveyor(config_path=&#39;aws_surveyor.cfg&#39;)</span>
+
+<span class="sd">    *   Don&#39;t read any configuration file at initialization, even if</span>
+<span class="sd">        the default configuration file</span>
+<span class="sd">        :file:`$HOME/.aws/aws_surveyor.cfg` exists:</span>
+
+<span class="sd">        ::</span>
+
+<span class="sd">            &gt;&gt;&gt; surveyor = AWSSurveyor(config_path=&#39;&#39;)</span>
+
+<span class="sd">You can also configure any of the ``profiles``, ``regions`` and</span>
+<span class="sd">``entity_types`` presets individually via initialization arguments.</span>
+<span class="sd">Any values for these presets that would otherwise be read from a</span>
+<span class="sd">configuration file will be overwritten by initialization arguments. To</span>
+<span class="sd">add to, rather than overwriting, configuration file presets set the</span>
+<span class="sd">``add_to_config`` argument to ``True``.</span>
+
+<span class="sd">    **Examples**</span>
+
+<span class="sd">    *   Define ``profiles``, ``regions`` and ``entity_types`` presets</span>
+<span class="sd">        at initialization, overriding any of their presets defined in</span>
+<span class="sd">        :file:`$HOME/.aws/aws_surveyor.cfg`::</span>
+
+<span class="sd">            &gt;&gt;&gt; surveyor = AWSSurveyor(</span>
+<span class="sd">            ...     profiles=[&#39;some_profile&#39;, &#39;another_profile&#39;],</span>
+<span class="sd">            ...     regions=[&#39;us-east-1&#39;, &#39;us-west-1&#39;, &#39;us-west-2&#39;],</span>
+<span class="sd">            ...     entity_types=[&#39;ec2&#39;, &#39;security_group&#39;, &#39;subnet&#39;, &#39;vpc&#39;]</span>
+<span class="sd">            ...     )</span>
+
+<span class="sd">        Examine the ``presets`` property to see the current presets::</span>
+
+<span class="sd">            &gt;&gt;&gt; surveyor.presets</span>
+<span class="sd">            {&#39;profiles&#39;: [&#39;some_profile&#39;, &#39;another_profile&#39;], &#39;regions&#39;: [</span>
+<span class="sd">            &#39;us-east-1&#39;, &#39;us-west-1&#39;, &#39;us-west-2&#39;], &#39;entity_types&#39;: [&#39;ec2&#39;,</span>
+<span class="sd">            &#39;security_group&#39;, &#39;subnet&#39;, &#39;vpc&#39;]}</span>
+
+<span class="sd">    *   Define the ``entity_types`` preset at initialization, overriding</span>
+<span class="sd">        the ``entity_types`` preset if one is defined in the default</span>
+<span class="sd">        configuration file :file:`$HOME/.aws/aws_surveyor.cfg`. This</span>
+<span class="sd">        will still use the default configuration file presets for</span>
+<span class="sd">        ``profiles`` and ``regions``::</span>
+
+<span class="sd">            &gt;&gt;&gt; surveyor = AWSSurveyor(</span>
+<span class="sd">            ...     entity_types=[&#39;ec2&#39;, &#39;security_group&#39;, &#39;subnet&#39;, &#39;vpc&#39;]</span>
+<span class="sd">            ...     )</span>
+
+<span class="sd">    *   Read the presets for ``profiles``, ``regions`` and</span>
+<span class="sd">        ``entity_types`` from the specified configuration file, and</span>
+<span class="sd">        add an additional &quot;elb&quot; entity type preset::</span>
+
+<span class="sd">            &gt;&gt;&gt; surveyor = AWSSurveyor(</span>
+<span class="sd">            ...     entity_types=[&#39;elb&#39;],</span>
+<span class="sd">            ...     config_path=&#39;my_aws_surveyor.cfg&#39;,</span>
+<span class="sd">            ...     add_to_config_path=True</span>
+<span class="sd">            ...     )</span>
+
+<span class="sd">    When creating an ``AWSSurveyor`` instance, you can also configure</span>
+<span class="sd">    the ``regions`` preset by setting the ``set_all_regions`` flag to</span>
+<span class="sd">    ``True``.</span>
+
+<span class="sd">    *   Read presets from the default configuration file and then</span>
+<span class="sd">        update the ``regions`` preset to include all regions::</span>
+
+<span class="sd">            &gt;&gt;&gt; surveyor = AWSSurveyor(</span>
+<span class="sd">            ...     set_all_regions=True</span>
+<span class="sd">            ...     )</span>
+
+
+<span class="sd">.. _aws_surveyor_config_files_label:</span>
+
+<span class="sd">Configuration Files</span>
+<span class="sd">-------------------</span>
+
+<span class="sd">AWSSurveyor configuration files define the preset values for the AWS</span>
+<span class="sd">credentials profiles, the AWS regions and the AWS entity types</span>
+<span class="sd">(corresponding to ``AWSInformer`` subclasses) that the ``survey()``</span>
+<span class="sd">method will use.</span>
+
+<span class="sd">    An example of a typical ``AWSSurveyor`` configuration file::</span>
+
+<span class="sd">        {</span>
+<span class="sd">            &quot;profiles&quot;: [&quot;some_profile&quot;, &quot;another_profile&quot;],</span>
+<span class="sd">            &quot;regions&quot;: [&quot;us-east-1&quot;, &quot;us-west-1&quot;, &quot;us-west-2&quot;],</span>
+<span class="sd">            &quot;entity_types&quot;: [&quot;ec2&quot;, &quot;security_group&quot;, &quot;subnet&quot;, &quot;vpc&quot;]</span>
+<span class="sd">        }</span>
+
+<span class="sd">The default location for an ``AWSSurveyor`` configuration file is</span>
+<span class="sd">:file:`$HOME/.aws/aws_surveyor.cfg`. If this file exists, it will be</span>
+<span class="sd">read automatically unless explicitly suppressed. You can also use</span>
+<span class="sd">configuration files in other locations or use initialization</span>
+<span class="sd">arguments for configuration. See</span>
+<span class="sd">:ref:`aws_surveyor_initialization_package_label` for more detailed</span>
+<span class="sd">information on surveyor initialization and configuration.</span>
+
+
+<span class="sd">.. _aws_surveyor_updating_configuration_package_label:</span>
+
+<span class="sd">Updating AWSSurveyor Configuration</span>
+<span class="sd">----------------------------------</span>
+
+<span class="sd">If you want to change the presets for an existing AWSSurveyor</span>
+<span class="sd">instance, you can assign directly to the ``presets`` property. You can</span>
+<span class="sd">also set the ``profiles``, ``regions`` and ``entity_types`` explicily,</span>
+<span class="sd">or use the ``add_*`` and ``remove_*`` methods.</span>
+
+<span class="sd">    **Examples**</span>
+
+<span class="sd">    *   Set the ``presets`` property directly::</span>
+
+<span class="sd">            &gt;&gt;&gt; surveyor = AWSSurveyor()</span>
+<span class="sd">            &gt;&gt;&gt; surveyor.presets = {</span>
+<span class="sd">            ...     &#39;profiles&#39;: [&#39;some_profile&#39;, &#39;another_profile&#39;],</span>
+<span class="sd">            ...     &#39;regions&#39;: [&#39;us-east-1&#39;, &#39;us-west-1&#39;, &#39;us-west-2&#39;],</span>
+<span class="sd">            ...     &#39;entity_types&#39;: [&#39;ec2&#39;, &#39;security_group&#39;, &#39;subnet&#39;, &#39;vpc&#39;]</span>
+<span class="sd">            ...     }</span>
+<span class="sd">            &gt;&gt;&gt; surveyor.presets</span>
+<span class="sd">            {&#39;profiles&#39;: [&#39;some_profile&#39;, &#39;another_profile&#39;], &#39;regions&#39;: [</span>
+<span class="sd">            &#39;us-east-1&#39;, &#39;us-west-1&#39;, &#39;us-west-2&#39;], &#39;entity_types&#39;: [&#39;ec2&#39;,</span>
+<span class="sd">            &#39;security_group&#39;, &#39;subnet&#39;, &#39;vpc&#39;]}</span>
+
+<span class="sd">    *   Assign values to individual presets::</span>
+
+<span class="sd">            &gt;&gt;&gt; surveyor = AWSSurveyor()</span>
+<span class="sd">            &gt;&gt;&gt; surveyor.profiles = [&#39;this_profile&#39;, &#39;that_profile&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; surveyor.profiles</span>
+<span class="sd">            [&#39;this_profile&#39;, &#39;that_profile&#39;]</span>
+
+<span class="sd">            &gt;&gt;&gt; surveyor.remove_profile([&#39;that_profile&#39;])</span>
+<span class="sd">            &gt;&gt;&gt; surveyor.add_profiles([&#39;another_profile&#39;])</span>
+<span class="sd">            &gt;&gt;&gt; surveyor.profiles</span>
+<span class="sd">            [&#39;this_profile&#39;, &#39;another_profile&#39;]</span>
+
+<span class="sd">    *   Adding duplicate preset values or trying to remove values that aren&#39;t</span>
+<span class="sd">        already present will have no effect on existing presets::</span>
+
+<span class="sd">            &gt;&gt;&gt; surveyor = AWSSurveyor()</span>
+<span class="sd">            &gt;&gt;&gt; surveyor.profiles = [&#39;this_profile&#39;, &#39;that_profile&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; surveyor.profiles</span>
+<span class="sd">            [&#39;this_profile&#39;, &#39;that_profile&#39;]</span>
+
+<span class="sd">            &gt;&gt;&gt; surveyor.remove_profile([&#39;another_profile&#39;])</span>
+<span class="sd">            &gt;&gt;&gt; surveyor.profiles</span>
+<span class="sd">            [&#39;this_profile&#39;, &#39;that_profile&#39;]</span>
+
+<span class="sd">            &gt;&gt;&gt; surveyor.regions = [&#39;us-west-1&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; surveyor.regions</span>
+<span class="sd">            [&#39;us-west-1&#39;]</span>
+
+<span class="sd">            &gt;&gt;&gt; surveyor.add_regions([&#39;us-west-1&#39;])</span>
+<span class="sd">            &gt;&gt;&gt; surveyor.regions</span>
+<span class="sd">            [&#39;us-west-1&#39;]</span>
+
+<span class="sd">.. _aws_surveyor_executing_surveys_package_label:</span>
+
+<span class="sd">Executing Surveys</span>
+<span class="sd">-----------------</span>
+
+<span class="sd">Use the ``AWSSurveyor.survey()`` method to query Amazon Web Services</span>
+<span class="sd">and create ``AWSInformer`` instances for entity types in regions and</span>
+<span class="sd">using profiles currently configured as presets or to a subset of the</span>
+<span class="sd">preset regions and profiles as defined in arguments passed to</span>
+<span class="sd">``survey()``.</span>
+
+<span class="sd">.. note:: Arguments for ``profiles`` and ``regions`` passed to</span>
+<span class="sd">    ``survey()`` must already be present in the ``AWSSurveyor``</span>
+<span class="sd">    instance&#39;s presets. If you want to survey new profiles or regions</span>
+<span class="sd">    you must first use the ``add_profiles()`` and ``add_regions()``</span>
+<span class="sd">    methods to update the presets.</span>
+
+<span class="sd">Use the ``AWSSurveyor.instances()`` method to retrieve the results of</span>
+<span class="sd">the survey as a list of ``AWSInformer`` instances.</span>
+
+<span class="sd">    **Examples**</span>
+
+<span class="sd">    *   Survey using presets defined at instance initialization::</span>
+
+<span class="sd">            &gt;&gt;&gt; surveyor = AWSSurveyor(</span>
+<span class="sd">            ...     profiles=[&#39;some_profile&#39;],</span>
+<span class="sd">            ...     regions=[&#39;us-east-1&#39;],</span>
+<span class="sd">            ...     entity_types=[&#39;ec2&#39;]</span>
+<span class="sd">            ...     )</span>
+<span class="sd">            &gt;&gt;&gt; surveyor.survey()</span>
+<span class="sd">            &gt;&gt;&gt; instances = surveyor.instances()</span>
+
+<span class="sd">    *   Pass arguments to ``survey()`` to override presets. This will</span>
+<span class="sd">        survey *vpc* entity_types in region *us-west-2* using</span>
+<span class="sd">        credentials defined for *another_profile*, regardless of the</span>
+<span class="sd">        configuration in the :file:`aws_surveyor` configuration file::</span>
+
+<span class="sd">            &gt;&gt;&gt; surveyor = AWSSurveyor(config_path=&#39;aws_surveyor.cfg&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; surveyor.survey(</span>
+<span class="sd">            ...     profiles=[&#39;another_profile&#39;],</span>
+<span class="sd">            ...     regions=[&#39;us-west-2&#39;],</span>
+<span class="sd">            ...     entity_types=[&#39;vpc&#39;]</span>
+<span class="sd">            ...     )</span>
+<span class="sd">            &gt;&gt;&gt; instances = surveyor.instances()</span>
+
+<span class="sd">        This surveyor will survey *vpc* entity_types using the</span>
+<span class="sd">        settings for `profile` and `region` in the</span>
+<span class="sd">        :file:`aws_surveyor` configuration file::</span>
+
+<span class="sd">            &gt;&gt;&gt; surveyor = AWSSurveyor(config_path=&#39;aws_surveyor.cfg&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; surveyor.survey(</span>
+<span class="sd">            ...     entity_types=[&#39;vpc&#39;]</span>
+<span class="sd">            ...     )</span>
+<span class="sd">            &gt;&gt;&gt; instances = surveyor.instances()</span>
+
+
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="c1"># Set default logging handler to avoid &quot;No handler found&quot; warnings.</span>
+<span class="k">try</span><span class="p">:</span>  <span class="c1"># Python 2.7+</span>
+    <span class="kn">from</span> <span class="nn">logging</span> <span class="k">import</span> <span class="n">NullHandler</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">class</span> <span class="nc">NullHandler</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Handler</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Placeholder handler.&#39;&#39;&#39;</span>
+        <span class="k">def</span> <span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+            <span class="sd">&#39;&#39;&#39;Pylint-compliant docstring.&#39;&#39;&#39;</span>
+            <span class="k">pass</span>
+
+<span class="kn">from</span> <span class="nn">boogio</span> <span class="k">import</span> <span class="n">aws_informer</span>
+
+<span class="kn">from</span> <span class="nn">utensils</span> <span class="k">import</span> <span class="n">flatten</span>
+<span class="kn">from</span> <span class="nn">utensils</span> <span class="k">import</span> <span class="n">prune</span>
+
+<span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">NullHandler</span><span class="p">())</span>
+
+<span class="c1"># We will cache the result of looking this up in AWS.</span>
+<span class="n">_ALL_REGIONS</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<span class="c1">#</span>
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="all_regions"><a class="viewcode-back" href="../../boogio.aws_surveyor.html#boogio.aws_surveyor.all_regions">[docs]</a><span class="k">def</span> <span class="nf">all_regions</span><span class="p">(</span><span class="n">profile_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">region_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">filters</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Return all region names matching any of the strings in filters.</span>
+
+<span class="sd">    Arguments:</span>
+
+<span class="sd">        profile_name (str):</span>
+<span class="sd">            An AWS credentials profile name to use call the boto3</span>
+<span class="sd">            ``describe_regions()`` API to retrieve the names of all</span>
+<span class="sd">            regions currently supported.</span>
+
+<span class="sd">        region_name (str):</span>
+<span class="sd">            An AWS region name to use call the boto3</span>
+<span class="sd">            ``describe_regions()`` API to retrieve the names of all</span>
+<span class="sd">            regions currently supported.</span>
+
+<span class="sd">        filters (list of str):</span>
+<span class="sd">            A list of strings which occur as substrings of the desired</span>
+<span class="sd">            regions.</span>
+
+<span class="sd">    Returns:</span>
+
+<span class="sd">        (list of str): All available regions that contain at least one</span>
+<span class="sd">        filter as a substring.</span>
+
+<span class="sd">    Examples::</span>
+
+<span class="sd">        &gt;&gt;&gt; all_regions(&#39;us&#39;)</span>
+<span class="sd">        [&#39;us-east-1&#39;, &#39;us-west-1&#39;, &#39;us-west-2&#39;]</span>
+
+<span class="sd">        &gt;&gt;&gt; all_regions(&#39;north&#39;, &#39;south&#39;)</span>
+<span class="sd">        [&#39;ap-northeast-1&#39;, &#39;ap-southeast-1&#39;, &#39;ap-southeast-2&#39;]</span>
+
+<span class="sd">        &gt;&gt;&gt; all_regions(&#39;-2&#39;)</span>
+<span class="sd">        [&#39;ap-southeast-2&#39;, &#39;us-west-2&#39;]</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="kn">import</span> <span class="nn">boto3</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+    <span class="c1"># This is what was returned for a particular profile and environment at</span>
+    <span class="c1"># a point in time; we&#39;re using it as a baseline.</span>
+    <span class="n">minimal_expected_regions</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;ap-northeast-1&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;ap-southeast-1&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;ap-southeast-2&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;eu-central-1&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;eu-west-1&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sa-east-1&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;us-east-1&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;us-east-2&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;us-west-1&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;us-west-2&#39;</span>
+        <span class="p">]</span>
+
+    <span class="k">global</span> <span class="n">_ALL_REGIONS</span>  <span class="c1"># pylint: disable=global-statement</span>
+
+    <span class="c1"># We only fetch this from AWS once; thereafter it&#39;s cached in the</span>
+    <span class="c1"># global module variable _ALL_REGIONS.</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+        <span class="s1">&#39;all_regions: profile_name </span><span class="si">%s</span><span class="s1">, region_name </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">profile_name</span><span class="p">,</span> <span class="n">region_name</span>
+        <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;_ALL_REGIONS: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">_ALL_REGIONS</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">_ALL_REGIONS</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="n">boto_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">profile_name</span><span class="p">:</span>
+            <span class="n">boto_kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;profile_name&#39;</span><span class="p">,</span> <span class="n">profile_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">region_name</span><span class="p">:</span>
+            <span class="n">boto_kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;region_name&#39;</span><span class="p">,</span> <span class="n">region_name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">boto_kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;region_name&#39;</span><span class="p">,</span> <span class="s1">&#39;us-east-1&#39;</span><span class="p">)</span>
+
+        <span class="n">sess</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="o">**</span><span class="n">boto_kwargs</span><span class="p">)</span>
+
+        <span class="n">kwargs_msg</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">boto_kwargs</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">boto_kwargs</span><span class="p">)</span>
+            <span class="k">else</span> <span class="s1">&#39;default profile and region&#39;</span>
+            <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;retrieving master regions list with </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">kwargs_msg</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s1">&#39;setting _ALL_REGIONS with describe_regions()&#39;</span>
+            <span class="s1">&#39; (default credentials required)&#39;</span>
+            <span class="p">)</span>
+        <span class="n">_ALL_REGIONS</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">x</span><span class="p">[</span><span class="s1">&#39;RegionName&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">sess</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s1">&#39;ec2&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">describe_regions</span><span class="p">()[</span><span class="s1">&#39;Regions&#39;</span><span class="p">]</span>
+            <span class="p">]</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;_ALL_REGIONS set to: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">_ALL_REGIONS</span><span class="p">)</span>
+
+    <span class="n">regions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_ALL_REGIONS</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;master regions list: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">regions</span><span class="p">)</span>
+
+    <span class="c1"># Fail if we didn&#39;t get at least the baseline.</span>
+    <span class="k">assert</span><span class="p">(</span>
+        <span class="nb">len</span><span class="p">([</span>
+            <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">minimal_expected_regions</span>
+            <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">regions</span>
+            <span class="p">])</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Apply filters.</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">filters</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">regions</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">regions</span>
+            <span class="k">if</span> <span class="nb">max</span><span class="p">([</span><span class="n">r</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filters</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+            <span class="p">]</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;filtered regions list: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">regions</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">regions</span></div>
+
+
+<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="AWSSurveyor"><a class="viewcode-back" href="../../boogio.aws_surveyor.html#boogio.aws_surveyor.AWSSurveyor">[docs]</a><span class="k">class</span> <span class="nc">AWSSurveyor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Manage AWS queries and ``AWSInformer`` instances with the results.</span>
+
+<span class="sd">    Arguments:</span>
+
+<span class="sd">        profiles (list of str, optional):</span>
+<span class="sd">            A list of the AWS credentials profiles to use for AWS</span>
+<span class="sd">            sessions.</span>
+
+<span class="sd">        regions (list of str, optional):</span>
+<span class="sd">            A list of the AWS regions to connect to with AWS</span>
+<span class="sd">            sessions.</span>
+
+<span class="sd">        entity_types (list of str, optional):</span>
+<span class="sd">            A list of the entity types to retrieve when</span>
+<span class="sd">            ``AWSSurveyor.survey()`` is called.</span>
+
+<span class="sd">        config_path (string, optional):</span>
+<span class="sd">            The path to a JSON format configuration file. See</span>
+<span class="sd">            :ref:`aws_surveyor_config_files_label`.</span>
+
+<span class="sd">        add_to_config (bool, default=False):</span>
+<span class="sd">            If `True`, any presets values defined by arguments will be</span>
+<span class="sd">            added to the presets values read from any configuration</span>
+<span class="sd">            files. If `False`, values passed as arguments will</span>
+<span class="sd">            overwrite values from configuration files.</span>
+
+<span class="sd">        set_all_regions (bool, default=False):</span>
+<span class="sd">            If `True`, the ``regions`` preset will be set to a list of</span>
+<span class="sd">            all currently available regions. This requires a call to</span>
+<span class="sd">            ``aws_surveyor.all_regions()``, which connects to AWS.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        mediators (list of AWSMediator):</span>
+<span class="sd">            A list of AWSMediator instances, one for each profile and</span>
+<span class="sd">            region assigned to the surveyor or obtained from default</span>
+<span class="sd">            configuration selection (e.g. the default profile or an</span>
+<span class="sd">            EC2 instance profile).</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">_default_config_filename</span> <span class="o">=</span> <span class="s1">&#39;aws_surveyor.cfg&#39;</span>
+    <span class="n">_default_config_dir</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">_presets_attributes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;profiles&#39;</span><span class="p">,</span> <span class="s1">&#39;regions&#39;</span><span class="p">,</span> <span class="s1">&#39;entity_types&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Set this to True to prevent attempts to create AWS sessions at</span>
+    <span class="c1"># initialization. This will prevent population of the _mediators</span>
+    <span class="c1"># attribute.</span>
+    <span class="n">_hold_sessions</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">timestamp_format</span> <span class="o">=</span> <span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">T%H%M%S&quot;</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="AWSSurveyor.default_config_filename"><a class="viewcode-back" href="../../boogio.aws_surveyor.html#boogio.aws_surveyor.AWSSurveyor.default_config_filename">[docs]</a>    <span class="k">def</span> <span class="nf">default_config_filename</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Set or get the class default configuration filename.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            value (string, optional):</span>
+<span class="sd">                If provided, the string to set as the default</span>
+<span class="sd">                configuration filename.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            (string) The current value (updated with the new value, if</span>
+<span class="sd">            provided) of the default configuration filename.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_default_config_filename</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_default_config_filename</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="AWSSurveyor.default_config_dir"><a class="viewcode-back" href="../../boogio.aws_surveyor.html#boogio.aws_surveyor.AWSSurveyor.default_config_dir">[docs]</a>    <span class="k">def</span> <span class="nf">default_config_dir</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Set or get the class default configuration file directory.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            value (string, optional):</span>
+<span class="sd">                If provided, the string to set as the default</span>
+<span class="sd">                configuration directory.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            (string) The current value (updated with the new</span>
+<span class="sd">            value, if provided) of the default configuration</span>
+<span class="sd">            directory.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_default_config_dir</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="k">elif</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_default_config_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_default_config_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">),</span> <span class="s1">&#39;.aws&#39;</span>
+                <span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_default_config_dir</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="AWSSurveyor.default_config_path"><a class="viewcode-back" href="../../boogio.aws_surveyor.html#boogio.aws_surveyor.AWSSurveyor.default_config_path">[docs]</a>    <span class="k">def</span> <span class="nf">default_config_path</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return the path to the default configuration file.</span>
+
+<span class="sd">        Return the path formed by joining the default configuration</span>
+<span class="sd">        filename to the default configuration directory.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">default_config_dir</span><span class="p">(),</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">default_config_filename</span><span class="p">()</span>
+            <span class="p">)</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_surveyable_types</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">types</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return a list of the AWSInformer types that are surveyable.</span>
+
+<span class="sd">        If any types are passed, return just the ones from that list</span>
+<span class="sd">        which are surveyable.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">surveyable_types</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">aws_informer</span><span class="o">.</span><span class="n">regional_types</span><span class="p">()</span> <span class="o">+</span>
+            <span class="n">aws_informer</span><span class="o">.</span><span class="n">regionless_types</span><span class="p">()</span> <span class="o">+</span>
+            <span class="n">aws_informer</span><span class="o">.</span><span class="n">unitary_types</span><span class="p">()</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">types</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">surveyable_types</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">types</span>
+                <span class="k">if</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">surveyable_types</span>
+                <span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">surveyable_types</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">profiles</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">regions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">entity_types</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">config_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">add_to_config</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">set_all_regions</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">):</span>  <span class="c1"># pylint: disable=bad-continuation</span>
+        <span class="sd">&#39;&#39;&#39;Initialize an AWSSurveyor instance.&#39;&#39;&#39;</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_survey_timestamp</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># This gets re-done, but lets e.g. pylint recognize the attributes.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_profiles</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_regions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_entity_types</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_presets_from_file</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;AWS Surveyor initializing...&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;profiles: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">profiles</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;regions: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">regions</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;entity_types: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">entity_types</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;config_path: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">config_path</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;add_to_config: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">add_to_config</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;set_all_regions: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">set_all_regions</span><span class="p">)</span>
+
+        <span class="c1"># Override or augment presets from file.</span>
+        <span class="k">if</span> <span class="n">profiles</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">add_to_config</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_profiles</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_profiles</span><span class="p">(</span><span class="n">profiles</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">regions</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">add_to_config</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_regions</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_regions</span><span class="p">(</span><span class="n">regions</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">entity_types</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">add_to_config</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_entity_types</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_entity_types</span><span class="p">(</span><span class="n">entity_types</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">set_all_regions</span><span class="p">:</span>
+            <span class="n">all_regions_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="n">profiles</span><span class="p">:</span>
+                <span class="n">all_regions_kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;profile_name&#39;</span><span class="p">,</span> <span class="n">profiles</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">regions</span><span class="p">:</span>
+                <span class="n">all_regions_kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;region_name&#39;</span><span class="p">,</span> <span class="n">regions</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_regions</span> <span class="o">=</span> <span class="n">all_regions</span><span class="p">(</span><span class="o">**</span><span class="n">all_regions_kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mediators</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_accounts</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hold_sessions</span><span class="p">:</span>
+            <span class="c1"># This will initialize both mediators and accounts.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_mediators</span><span class="p">()</span>
+
+        <span class="c1"># This gets populated by survey().</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_informers</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="k">def</span> <span class="nf">_initialize_presets_from_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_path</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Configure presets from config_path, if not empty.&#39;&#39;&#39;</span>
+
+        <span class="c1"># Set this empty, then override that with the config file</span>
+        <span class="c1"># contents, if a config file was provided.</span>
+        <span class="n">config_content</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">config_path</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">config_path</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_config_path</span><span class="p">())</span>
+                    <span class="p">):</span>  <span class="c1"># pylint: disable=bad-continuation</span>
+                <span class="n">config_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_config_path</span><span class="p">()</span>
+
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># Use the value of config.</span>
+                <span class="n">config_path</span> <span class="o">=</span> <span class="n">config_path</span>
+
+            <span class="k">if</span> <span class="n">config_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fptr</span><span class="p">:</span>
+                    <span class="n">config_content</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fptr</span><span class="p">)</span>
+
+        <span class="c1"># It&#39;s OK to initialize all at once this way, but we need to use</span>
+        <span class="c1"># the add_* methods so we get any error checking.</span>
+        <span class="k">for</span> <span class="n">preset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_presets_attributes</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">preset</span><span class="p">,</span> <span class="p">[])</span>
+
+        <span class="k">if</span> <span class="s1">&#39;profiles&#39;</span> <span class="ow">in</span> <span class="n">config_content</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_profiles</span><span class="p">(</span><span class="n">config_content</span><span class="p">[</span><span class="s1">&#39;profiles&#39;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="s1">&#39;regions&#39;</span> <span class="ow">in</span> <span class="n">config_content</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_regions</span><span class="p">(</span><span class="n">config_content</span><span class="p">[</span><span class="s1">&#39;regions&#39;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="s1">&#39;entity_types&#39;</span> <span class="ow">in</span> <span class="n">config_content</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_entity_types</span><span class="p">(</span><span class="n">config_content</span><span class="p">[</span><span class="s1">&#39;entity_types&#39;</span><span class="p">])</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="k">def</span> <span class="nf">_get_initialized_mediators</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return the list of ``AWSMediator`` instances to use.&#39;&#39;&#39;</span>
+
+        <span class="n">all_profile_kwargs</span> <span class="o">=</span> <span class="p">[{}]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">profiles</span><span class="p">:</span>
+            <span class="n">all_profile_kwargs</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;profile_name&#39;</span><span class="p">:</span> <span class="n">p</span><span class="p">}</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">profiles</span><span class="p">]</span>
+
+        <span class="n">all_region_kwargs</span> <span class="o">=</span> <span class="p">[{}]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">regions</span><span class="p">:</span>
+            <span class="n">all_region_kwargs</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;region_name&#39;</span><span class="p">:</span> <span class="n">r</span><span class="p">}</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">regions</span><span class="p">]</span>
+
+        <span class="n">all_mediator_kwargs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">**</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">all_profile_kwargs</span><span class="p">,</span> <span class="n">all_region_kwargs</span><span class="p">)</span>
+            <span class="p">]</span>
+
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">aws_informer</span><span class="o">.</span><span class="n">AWSMediator</span><span class="p">(</span><span class="o">**</span><span class="n">mediator_kwargs</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">mediator_kwargs</span> <span class="ow">in</span> <span class="n">all_mediator_kwargs</span>
+            <span class="p">]</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="k">def</span> <span class="nf">_initialize_mediators</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Perform mediator initialization and accounts record update.&#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mediators</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_initialized_mediators</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_accounts</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;account_id&#39;</span><span class="p">:</span> <span class="n">m</span><span class="o">.</span><span class="n">account_id</span><span class="p">,</span>
+                <span class="s1">&#39;account_name&#39;</span><span class="p">:</span> <span class="n">m</span><span class="o">.</span><span class="n">account_name</span><span class="p">,</span>
+                <span class="s1">&#39;account_desc&#39;</span><span class="p">:</span> <span class="n">m</span><span class="o">.</span><span class="n">account_desc</span><span class="p">,</span>
+                <span class="s1">&#39;region_name&#39;</span><span class="p">:</span> <span class="n">m</span><span class="o">.</span><span class="n">region_name</span>
+                <span class="p">}</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mediators</span>
+            <span class="p">]</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">survey_timestamp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Get the _survey_timestamp attribute.&#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_survey_timestamp</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">profiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Get or set the profiles attribute.&#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_profiles</span>
+
+    <span class="nd">@profiles</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">profiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Set the profiles attribute.&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_profiles</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">regions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Get or set the regions attribute.&#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regions</span>
+
+    <span class="nd">@regions</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">regions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Set the regions attribute.&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_regions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">entity_types</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Get or set the entity_types attribute.&#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entity_types</span>
+
+    <span class="nd">@entity_types</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">entity_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Set the entity_types attribute.&#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">bad_entity_types</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">value</span>
+                <span class="k">if</span> <span class="n">t</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_surveyable_types</span><span class="p">(</span><span class="o">*</span><span class="n">value</span><span class="p">)</span>
+                <span class="p">]</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bad_entity_types</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;unsurveyable entity types:&#39;</span>
+                    <span class="s1">&#39; </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bad_entity_types</span><span class="p">)</span>
+                    <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_entity_types</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">presets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Get or set all of the presets attributes at once.</span>
+
+<span class="sd">        The presets attributes are ``profiles``, ``regions`` and</span>
+<span class="sd">        ``entity_types`` The ``presets`` derived property returns them</span>
+<span class="sd">        as a dictionary with the attribute names as keys and the</span>
+<span class="sd">        attribute values as values.</span>
+
+<span class="sd">        Setting presets to a dictionary with the same keys will assign</span>
+<span class="sd">        the corresponding values, *and assign an empty list for any</span>
+<span class="sd">        of the presets attributes not present in the dictionary*.</span>
+
+<span class="sd">        Examples:</span>
+
+<span class="sd">            *   Set all presets to the values shown::</span>
+
+<span class="sd">                    &gt;&gt;&gt; surveyor = AWSSurveyor()</span>
+<span class="sd">                    &gt;&gt;&gt; surveyor.presets = {</span>
+<span class="sd">                    ...     &#39;profiles&#39;: [&#39;some_profile&#39;, &#39;another_profile&#39;],</span>
+<span class="sd">                    ...     &#39;regions&#39;: [&#39;us-east-1&#39;, &#39;us-west-1&#39;],</span>
+<span class="sd">                    ...     &#39;entity_types&#39;: [&#39;vpc&#39;, &#39;subnet&#39;]</span>
+<span class="sd">                    ...     }</span>
+
+<span class="sd">            *   Set the profile preset to ``[another_profile]`` and</span>
+<span class="sd">                empty the other presets::</span>
+
+<span class="sd">                    &gt;&gt;&gt; surveyor = AWSSurveyor()</span>
+<span class="sd">                    &gt;&gt;&gt; surveyor.presets = {&#39;profiles&#39;: [&#39;another_profile&#39;]}</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;profiles&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">profiles</span><span class="p">,</span>
+            <span class="s1">&#39;regions&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">regions</span><span class="p">,</span>
+            <span class="s1">&#39;entity_types&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity_types</span>
+            <span class="p">}</span>
+
+    <span class="nd">@presets</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">presets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Set the presets attributes.&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_presets_from_file</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">preset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_presets_attributes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">preset</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">preset</span><span class="p">,</span> <span class="n">value</span><span class="p">[</span><span class="n">preset</span><span class="p">])</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="AWSSurveyor.mediators"><a class="viewcode-back" href="../../boogio.aws_surveyor.html#boogio.aws_surveyor.AWSSurveyor.mediators">[docs]</a>    <span class="k">def</span> <span class="nf">mediators</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return the list of ``AWSMediator`` instances in use.&#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mediators</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">accounts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;The surveyors&#39; ``AWSMediator``&#39;s AWS account attributes.</span>
+
+<span class="sd">        Each element of the list is a dict with the account</span>
+<span class="sd">        information for one of the surveyor&#39;s mediators, of the form:</span>
+
+<span class="sd">        ::</span>
+
+<span class="sd">            {</span>
+<span class="sd">            &#39;account_id&#39;: &lt;AWS Account ID&gt;,</span>
+<span class="sd">            &#39;account_name&#39;: &lt;Account Name, if defined in boogio.json&gt;,</span>
+<span class="sd">            &#39;account_desc&#39;: &lt;account_name if defined, or account_id&gt;,</span>
+<span class="sd">            &#39;region_name&#39;: &lt;mediator&#39;s region_name attribute&gt;</span>
+<span class="sd">            }</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_accounts</span>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="AWSSurveyor.add_profiles"><a class="viewcode-back" href="../../boogio.aws_surveyor.html#boogio.aws_surveyor.AWSSurveyor.add_profiles">[docs]</a>    <span class="k">def</span> <span class="nf">add_profiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">profiles</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Add new values to the ``profiles`` attribute.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            profiles (list of str):</span>
+<span class="sd">                The profile values to add.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">profiles</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">profiles</span> <span class="o">+</span> <span class="n">profiles</span><span class="p">)</span>
+            <span class="p">)</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="AWSSurveyor.remove_profiles"><a class="viewcode-back" href="../../boogio.aws_surveyor.html#boogio.aws_surveyor.AWSSurveyor.remove_profiles">[docs]</a>    <span class="k">def</span> <span class="nf">remove_profiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">profiles</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Remove values from the ``profiles`` attribute.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            profiles (list of str):</span>
+<span class="sd">                The profile values to remove.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">profiles</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">profiles</span><span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">profiles</span><span class="p">))</span>
+            <span class="p">)</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="AWSSurveyor.add_regions"><a class="viewcode-back" href="../../boogio.aws_surveyor.html#boogio.aws_surveyor.AWSSurveyor.add_regions">[docs]</a>    <span class="k">def</span> <span class="nf">add_regions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">regions</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Add new values to the ``regions`` attribute.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            regions (list of str):</span>
+<span class="sd">                The region values to add.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">regions</span> <span class="o">+</span> <span class="n">regions</span><span class="p">)</span>
+            <span class="p">)</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="AWSSurveyor.remove_regions"><a class="viewcode-back" href="../../boogio.aws_surveyor.html#boogio.aws_surveyor.AWSSurveyor.remove_regions">[docs]</a>    <span class="k">def</span> <span class="nf">remove_regions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">regions</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Remove values from the ``regions`` attribute.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            regions (list of str):</span>
+<span class="sd">                The region values to remove.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">regions</span><span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">regions</span><span class="p">))</span>
+            <span class="p">)</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="AWSSurveyor.add_entity_types"><a class="viewcode-back" href="../../boogio.aws_surveyor.html#boogio.aws_surveyor.AWSSurveyor.add_entity_types">[docs]</a>    <span class="k">def</span> <span class="nf">add_entity_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_types</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Add new values to the ``entity_types`` attribute.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            entity_types (list of str):</span>
+<span class="sd">                The entity_type values to add.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">entity_types</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entity_types</span> <span class="o">+</span> <span class="n">entity_types</span><span class="p">)</span>
+            <span class="p">)</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="AWSSurveyor.remove_entity_types"><a class="viewcode-back" href="../../boogio.aws_surveyor.html#boogio.aws_surveyor.AWSSurveyor.remove_entity_types">[docs]</a>    <span class="k">def</span> <span class="nf">remove_entity_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_types</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Remove values from the ``entity_types`` attribute.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            entity_types (list of str):</span>
+<span class="sd">                The entity_type values to remove.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">entity_types</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entity_types</span><span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">entity_types</span><span class="p">))</span>
+            <span class="p">)</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="AWSSurveyor.add_filters"><a class="viewcode-back" href="../../boogio.aws_surveyor.html#boogio.aws_surveyor.AWSSurveyor.add_filters">[docs]</a>    <span class="k">def</span> <span class="nf">add_filters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">filters</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Add AWS entity retrieval filters to the surveyor&#39;s mediators.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            entity_type (string):</span>
+
+<span class="sd">                An informer entity type to which this filter will</span>
+<span class="sd">                apply.</span>
+
+<span class="sd">            new_filters (dict):</span>
+
+<span class="sd">                The *Name* strings and *Values* lists for the filters.</span>
+
+<span class="sd">        See the documentation for ``AWSMediator`` for further details.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">mediator</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mediators</span><span class="p">():</span>
+            <span class="n">mediator</span><span class="o">.</span><span class="n">add_filters</span><span class="p">(</span><span class="n">entity_type</span><span class="p">,</span> <span class="n">filters</span><span class="p">)</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="AWSSurveyor.remove_all_filters"><a class="viewcode-back" href="../../boogio.aws_surveyor.html#boogio.aws_surveyor.AWSSurveyor.remove_all_filters">[docs]</a>    <span class="k">def</span> <span class="nf">remove_all_filters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">remove_types</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Remove AWS entity filters from the surveyor&#39;s mediators.&#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">mediator</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mediators</span><span class="p">():</span>
+            <span class="n">mediator</span><span class="o">.</span><span class="n">remove_all_filters</span><span class="p">(</span><span class="o">*</span><span class="n">remove_types</span><span class="p">)</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="AWSSurveyor.survey"><a class="viewcode-back" href="../../boogio.aws_surveyor.html#boogio.aws_surveyor.AWSSurveyor.survey">[docs]</a>    <span class="k">def</span> <span class="nf">survey</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">entity_types</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Conduct a survey of preset or specified AWS targets.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            *entity_types (str):</span>
+<span class="sd">                A tuple of the entity types to retrieve for this</span>
+<span class="sd">                survey, instead of any instance presets.</span>
+
+<span class="sd">            profiles (list of str, optional):</span>
+<span class="sd">                A subset of instance profiles to use for this survey.</span>
+
+<span class="sd">            regions (list of str, optional):</span>
+<span class="sd">                A subset of instance regions to use for this survey.</span>
+
+<span class="sd">            refresh (optional):</span>
+<span class="sd">                If ``True`` (the default), delete all existing</span>
+<span class="sd">                informer records and load anew. If ``False``, preserve</span>
+<span class="sd">                existing records for any entity type that has already</span>
+<span class="sd">                been loaded.</span>
+
+<span class="sd">        Raises:</span>
+
+<span class="sd">            ValueError: If any item in ``profiles`` or ``regions``</span>
+<span class="sd">                isn&#39;t already present in the corresponding presets.</span>
+
+<span class="sd">            ValueError: If any of the entity types in ``entity_types``</span>
+<span class="sd">                isn&#39;t a valid ``AWSInformer`` entity type.</span>
+
+<span class="sd">        The ``survey()`` method populates the internal list of</span>
+<span class="sd">        ``AWSInformer`` instances maintained by this ``AWSSurveyor``</span>
+<span class="sd">        instance, which can then be accessed via the ``instances()``</span>
+<span class="sd">        method.</span>
+
+<span class="sd">        By default, the ``profiles``, ``regions`` and ``entity_types``</span>
+<span class="sd">        used will be the presets values. Any values passed in as</span>
+<span class="sd">        arguments will override the corresponding presets values.</span>
+<span class="sd">        *This can be used to limit the profiles and regions surveyed</span>
+<span class="sd">        to a subset of those already configured as presets, but no new</span>
+<span class="sd">        profiles or regions can be added.* There is no such</span>
+<span class="sd">        restriction for ``entity_types``, and any new types will be</span>
+<span class="sd">        added to the instance&#39;s ``entity_types`` preset.</span>
+
+<span class="sd">        If no profile was specified (so that default, environment</span>
+<span class="sd">        variable specified or instance profile associated credentials</span>
+<span class="sd">        will be used), any profiles passed to ``survey()`` will be</span>
+<span class="sd">        ignored.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+        <span class="n">default_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;profiles&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;regions&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;refresh&#39;</span><span class="p">:</span> <span class="kc">True</span>
+            <span class="p">}</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">default_kwargs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">profiles</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;profiles&#39;</span><span class="p">]</span>
+        <span class="n">regions</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;regions&#39;</span><span class="p">]</span>
+        <span class="n">refresh</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;refresh&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">profiles</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">profiles</span><span class="p">:</span>
+            <span class="n">err_msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s1">&#39;survey limiting profiles not allowed when using&#39;</span>
+                <span class="s1">&#39; unspecified surveyor profile&#39;</span>
+                <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err_msg</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err_msg</span><span class="p">)</span>
+
+        <span class="c1"># - - - - - - - - - - - - - - - - - - - -</span>
+        <span class="c1"># Profiles and regions must be a subset of presets.</span>
+        <span class="c1"># - - - - - - - - - - - - - - - - - - - -</span>
+
+        <span class="k">if</span> <span class="n">profiles</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">bad_profiles</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">profiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_profiles</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bad_profiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">profiles</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">profiles</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">regions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">bad_regions</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">regions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regions</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bad_regions</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">regions</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">regions</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bad_profiles</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">bad_regions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">err_msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s1">&#39;survey profiles and regions must be subsets of&#39;</span>
+                <span class="s1">&#39; AWSSurveyor instance preset profiles and regions&#39;</span>
+                <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err_msg</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err_msg</span><span class="p">)</span>
+
+        <span class="c1"># - - - - - - - - - - - - - - - - - - - -</span>
+        <span class="c1"># Entity types must be surveyable.</span>
+        <span class="c1"># - - - - - - - - - - - - - - - - - - - -</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">entity_types</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">new_entity_types</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">entity_types</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity_types</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_entity_types</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">entity_types</span>
+                <span class="k">if</span> <span class="n">p</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity_types</span>
+                <span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_entity_types</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># This will check for valid entity types.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_entity_types</span><span class="p">(</span><span class="n">new_entity_types</span><span class="p">)</span>
+
+        <span class="c1"># - - - - - - - - - - - - - - - - - - - -</span>
+        <span class="c1"># Select the required mediators.</span>
+        <span class="c1"># - - - - - - - - - - - - - - - - - - - -</span>
+
+        <span class="c1"># As noted above, we raised an error if self.profiles is not</span>
+        <span class="c1"># defined and profiles was specified.</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;selecting mediators...&#39;</span><span class="p">)</span>
+        <span class="n">mediators</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mediators</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">profile_name</span> <span class="ow">in</span> <span class="n">profiles</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">profiles</span><span class="p">)</span> <span class="ow">and</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">region_name</span> <span class="ow">in</span> <span class="n">regions</span>
+            <span class="p">]</span>
+
+        <span class="c1"># A set of mediators for nonregionized types, where we only need</span>
+        <span class="c1"># one representative for each profile.</span>
+        <span class="n">nonregionized_mediators</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">mediators</span>
+            <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">region_name</span> <span class="o">==</span> <span class="n">regions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="p">]</span>
+
+        <span class="c1"># Check for empty polling.</span>
+        <span class="k">if</span> <span class="ow">not</span><span class="p">(</span><span class="n">entity_types</span><span class="p">):</span>
+            <span class="n">err_msg</span> <span class="o">=</span> <span class="s1">&#39;survey() requires non-empty entity types list&#39;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">err_msg</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span>
+                <span class="ow">not</span> <span class="n">regions</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span>
+                    <span class="n">aws_informer</span><span class="o">.</span><span class="n">unitary_types</span><span class="p">()</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">entity_types</span><span class="p">))</span>
+                <span class="p">):</span>  <span class="c1"># pylint: disable=bad-continuation</span>
+            <span class="n">err_msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s1">&#39;survey() of one or more of entity types </span><span class="si">%s</span><span class="s1">&#39;</span>
+                <span class="s1">&#39; requires defined regions list&#39;</span>
+                <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">err_msg</span><span class="p">,</span> <span class="n">entity_types</span><span class="p">)</span>
+
+        <span class="c1"># - - - - - - - - - - - - - - - - - - - -</span>
+        <span class="c1"># Polling begins.</span>
+        <span class="c1"># - - - - - - - - - - - - - - - - - - - -</span>
+        <span class="c1"># If we&#39;re not refreshing, we have to preserve the existing</span>
+        <span class="c1"># entities.</span>
+        <span class="n">informers_index_by_entity_type</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">informers</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_surveyable_types</span><span class="p">()</span>
+            <span class="p">}</span>
+        <span class="n">existing_surveyed_types</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">x</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">informers_index_by_entity_type</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="p">[]</span>
+            <span class="p">]</span>
+
+        <span class="n">informer_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># If we&#39;re not refreshing, we keep anything already surveyed.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">refresh</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">informers</span> <span class="ow">in</span> <span class="p">(</span>
+                    <span class="n">informers_index_by_entity_type</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()</span>
+                    <span class="p">):</span>  <span class="c1"># pylint: disable=bad-continuation</span>
+                <span class="n">informer_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">informers</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_survey_timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">timestamp_format</span>
+            <span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;starting polling...&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">entity_type</span> <span class="ow">in</span> <span class="n">entity_types</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="n">entity_type</span> <span class="ow">in</span> <span class="n">existing_surveyed_types</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">refresh</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;polling entity type </span><span class="si">%s</span><span class="s1">...&#39;</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">)</span>
+            <span class="c1"># - - - - - - - - - - - -</span>
+            <span class="c1"># These have a separate set by region.</span>
+            <span class="c1"># - - - - - - - - - - - -</span>
+            <span class="k">if</span> <span class="n">entity_type</span> <span class="ow">in</span> <span class="n">aws_informer</span><span class="o">.</span><span class="n">regional_types</span><span class="p">():</span>
+
+                <span class="k">for</span> <span class="n">mediator</span> <span class="ow">in</span> <span class="n">mediators</span><span class="p">:</span>
+                    <span class="n">informer_list</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+                        <span class="n">aws_informer</span><span class="o">.</span><span class="n">informer_class</span><span class="p">(</span><span class="n">entity_type</span><span class="p">)(</span>
+                            <span class="n">entity</span><span class="p">,</span> <span class="n">mediator</span><span class="o">=</span><span class="n">mediator</span>
+                            <span class="p">)</span>
+                        <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">mediator</span><span class="o">.</span><span class="n">entities</span><span class="p">(</span><span class="n">entity_type</span><span class="p">)</span>
+                        <span class="p">])</span>
+
+            <span class="c1"># - - - - - - - - - - - -</span>
+            <span class="c1"># These aren&#39;t separated out by region.</span>
+            <span class="c1"># The canonical example is SQS.</span>
+            <span class="c1"># - - - - - - - - - - - -</span>
+            <span class="k">elif</span> <span class="n">entity_type</span> <span class="ow">in</span> <span class="n">aws_informer</span><span class="o">.</span><span class="n">regionless_types</span><span class="p">():</span>
+
+                <span class="k">for</span> <span class="n">mediator</span> <span class="ow">in</span> <span class="n">nonregionized_mediators</span><span class="p">:</span>
+                    <span class="n">informer_list</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+                        <span class="n">aws_informer</span><span class="o">.</span><span class="n">informer_class</span><span class="p">(</span><span class="n">entity_type</span><span class="p">)(</span>
+                            <span class="n">entity</span><span class="p">,</span> <span class="n">mediator</span><span class="o">=</span><span class="n">mediator</span>
+                            <span class="p">)</span>
+                        <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">mediator</span><span class="o">.</span><span class="n">entities</span><span class="p">(</span><span class="n">entity_type</span><span class="p">)</span>
+                        <span class="p">])</span>
+
+            <span class="c1"># - - - - - - - - - - - -</span>
+            <span class="c1"># These don&#39;t have &quot;multiple entities&quot;.</span>
+            <span class="c1"># The canonical example is IAM.</span>
+            <span class="c1"># - - - - - - - - - - - -</span>
+            <span class="k">elif</span> <span class="n">entity_type</span> <span class="ow">in</span> <span class="n">aws_informer</span><span class="o">.</span><span class="n">unitary_types</span><span class="p">():</span>
+                <span class="n">informer_list</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+                    <span class="n">aws_informer</span><span class="o">.</span><span class="n">informer_class</span><span class="p">(</span>
+                        <span class="n">entity_type</span>
+                        <span class="p">)(</span><span class="kc">None</span><span class="p">,</span> <span class="n">mediator</span><span class="o">=</span><span class="n">mediators</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_informers</span> <span class="o">=</span> <span class="n">informer_list</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="AWSSurveyor.informers"><a class="viewcode-back" href="../../boogio.aws_surveyor.html#boogio.aws_surveyor.AWSSurveyor.informers">[docs]</a>    <span class="k">def</span> <span class="nf">informers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">entity_types</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return the current list of surveyed ``AWSInformer`` instances.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            entity_types (list of str): A list of informer entity</span>
+<span class="sd">                types.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            list: A list of the informers of the specified entity</span>
+<span class="sd">                types retrieved in the last call to ``survey()``.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">entity_types</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_informers</span>
+
+        <span class="n">informer_classes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span>
+            <span class="n">aws_informer</span><span class="o">.</span><span class="n">informer_class</span><span class="p">(</span><span class="n">entity_type</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">entity_type</span> <span class="ow">in</span> <span class="n">entity_types</span>
+            <span class="p">])</span>
+
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_informers</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">informer_classes</span><span class="p">))</span>
+            <span class="p">]</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="AWSSurveyor.expand_informers"><a class="viewcode-back" href="../../boogio.aws_surveyor.html#boogio.aws_surveyor.AWSSurveyor.expand_informers">[docs]</a>    <span class="k">def</span> <span class="nf">expand_informers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">entity_types</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Expand the current list of surveyed ``AWSInformer`` instances.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            entity_types (list of str): A list of informer entity</span>
+<span class="sd">                types.</span>
+
+<span class="sd">        Calling the ``AWSSurveyor.expand_informers()`` method will</span>
+<span class="sd">        call the ``expand()`` method on each instance in the current</span>
+<span class="sd">        list of surveyed informers, or on each instance of one of the</span>
+<span class="sd">        entity types indicated.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">informer_classes_to_expand</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span>
+            <span class="n">aws_informer</span><span class="o">.</span><span class="n">informer_class</span><span class="p">(</span><span class="n">entity_type</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">entity_type</span> <span class="ow">in</span> <span class="n">entity_types</span>
+            <span class="p">])</span>
+
+        <span class="p">[</span>
+            <span class="n">i</span><span class="o">.</span><span class="n">expand</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_informers</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">informer_classes_to_expand</span><span class="p">))</span> <span class="ow">or</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">informer_classes_to_expand</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="p">]</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="AWSSurveyor.all_paths"><a class="viewcode-back" href="../../boogio.aws_surveyor.html#boogio.aws_surveyor.AWSSurveyor.all_paths">[docs]</a>    <span class="k">def</span> <span class="nf">all_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">entity_types</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Find prunable paths available in informers of given types.</span>
+
+<span class="sd">        Find all the prune specification paths present in the list of</span>
+<span class="sd">        ``to_dict()`` output for a list of ``AWSInformer`` instances.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            entity_types (tuple of str): A tuple of informer entity</span>
+<span class="sd">                types.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            list: A list of all the ``prune`` path specifications</span>
+<span class="sd">                found in and informer in this instance&#39;s</span>
+<span class="sd">                ``informers()`` list.</span>
+
+
+<span class="sd">        See the documentation for the utensils ``prune`` module</span>
+<span class="sd">        for information on pruning and prune paths.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># TODO: Need test cases.</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">entity_types</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">entity_types</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">entity_type</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">informers</span><span class="p">())</span>
+                <span class="p">))</span>
+
+        <span class="c1"># TODO: This may lead to ugly results for multiple entity types.</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">flatten</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span>
+            <span class="n">prune</span><span class="o">.</span><span class="n">paths</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">informers</span><span class="p">(</span><span class="o">*</span><span class="n">entity_types</span><span class="p">)]</span>
+                <span class="p">)</span>
+            <span class="p">))</span></div>
+
+    <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<div class="viewcode-block" id="AWSSurveyor.set_ec2_elb_supplementals"><a class="viewcode-back" href="../../boogio.aws_surveyor.html#boogio.aws_surveyor.AWSSurveyor.set_ec2_elb_supplementals">[docs]</a>    <span class="k">def</span> <span class="nf">set_ec2_elb_supplementals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Record LoadBalancer names in EC2 Instance supplementals.</span>
+
+<span class="sd">        Calling ``set_ec2_elb_supplementals()`` will add a</span>
+<span class="sd">        ``load_balancer_names`` item to each EC2InstanceInformer in</span>
+<span class="sd">        the surveyor&#39;s informers.</span>
+
+<span class="sd">        Note that this will retrieve ELB records from AWS if they</span>
+<span class="sd">        aren&#39;t already loaded.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># Create empty load_balancer_names entries in each EC2</span>
+        <span class="c1"># informer supplementals.</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">informers</span><span class="p">(</span><span class="s1">&#39;ec2&#39;</span><span class="p">):</span>
+            <span class="n">x</span><span class="o">.</span><span class="n">supplementals</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;load_balancer_names&#39;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="n">x</span><span class="o">.</span><span class="n">supplementals</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;load_balancer_genuses&#39;</span><span class="p">,</span> <span class="p">[])</span>
+
+        <span class="c1"># Populate the ELB informers, don&#39;t lose what&#39;s already there.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">survey</span><span class="p">(</span><span class="s1">&#39;elb&#39;</span><span class="p">,</span> <span class="n">refresh</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># Add elb informer names and base names to each instance supplemental.</span>
+        <span class="n">informer_cache</span> <span class="o">=</span> <span class="n">aws_informer</span><span class="o">.</span><span class="n">AWSMediator</span><span class="o">.</span><span class="n">informer_cache</span>
+        <span class="k">for</span> <span class="n">elb_informer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">informers</span><span class="p">(</span><span class="s1">&#39;elb&#39;</span><span class="p">):</span>
+
+            <span class="n">load_balancer_name</span> <span class="o">=</span> <span class="n">elb_informer</span><span class="o">.</span><span class="n">resource</span><span class="p">[</span><span class="s1">&#39;LoadBalancerName&#39;</span><span class="p">]</span>
+
+            <span class="n">load_balancer_genus</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">load_balancer_site_specific</span> <span class="o">=</span> <span class="n">elb_informer</span><span class="o">.</span><span class="n">supplementals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s1">&#39;site-specific&#39;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">load_balancer_site_specific</span><span class="p">:</span>
+                <span class="n">load_balancer_genus</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">load_balancer_site_specific</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;genus&#39;</span><span class="p">)</span>
+                    <span class="p">)</span>
+
+            <span class="n">ec2_instance_ids</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">x</span><span class="p">[</span><span class="s1">&#39;InstanceId&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">elb_informer</span><span class="o">.</span><span class="n">resource</span><span class="p">[</span><span class="s1">&#39;Instances&#39;</span><span class="p">]</span>
+                <span class="p">]</span>
+            <span class="k">for</span> <span class="n">ec2_instance_id</span> <span class="ow">in</span> <span class="n">ec2_instance_ids</span><span class="p">:</span>
+
+                <span class="n">ec2_informer</span> <span class="o">=</span> <span class="n">informer_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ec2_instance_id</span><span class="p">)</span>
+
+                <span class="c1"># Ignore misses for now? ELBs can reference EC2</span>
+                <span class="c1"># instances that no longer exist.</span>
+                <span class="k">if</span> <span class="n">ec2_informer</span><span class="p">:</span>
+                    <span class="n">supplementals</span> <span class="o">=</span> <span class="n">ec2_informer</span><span class="o">.</span><span class="n">supplementals</span>
+                    <span class="n">supplementals</span><span class="p">[</span><span class="s1">&#39;load_balancer_names&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">load_balancer_name</span>
+                        <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">load_balancer_genus</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">supplementals</span><span class="p">[</span><span class="s1">&#39;load_balancer_genuses&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                            <span class="n">load_balancer_genus</span>
+                            <span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Scott Brown.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

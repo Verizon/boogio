@@ -1,0 +1,41 @@
+boogio.aws_auditor package
+==========================
+
+.. automodule:: boogio.aws_auditor
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+boogio.aws_auditor.audit_diff module
+------------------------------------
+
+.. automodule:: boogio.aws_auditor.audit_diff
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+boogio.aws_auditor.auditor module
+---------------------------------
+
+.. automodule:: boogio.aws_auditor.auditor
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+boogio.aws_auditor.cleaner module
+---------------------------------
+
+.. automodule:: boogio.aws_auditor.cleaner
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+boogio.aws_auditor.cleanup module
+---------------------------------
+
+.. automodule:: boogio.aws_auditor.cleanup
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+

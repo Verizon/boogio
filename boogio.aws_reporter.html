@@ -1,0 +1,880 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>boogio.aws_reporter module &mdash; boogio 1.0.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="boogio 1.0.0 documentation" href="index.html"/>
+        <link rel="next" title="boogio.sqs_sifter module" href="boogio.sqs_sifter.html"/>
+        <link rel="prev" title="boogio.aws_surveyor module" href="boogio.aws_surveyor.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> boogio
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="boogio.aws_informer.html"> aws_informer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="boogio.aws_surveyor.html"> aws_surveyor</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#"> aws_reporter</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#report-definitions">Report Definitions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="boogio.sqs_sifter.html"> sqs_sifter</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">boogio</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>boogio.aws_reporter module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/boogio.aws_reporter.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-boogio.aws_reporter">
+<span id="boogio-aws-reporter-module"></span><h1>boogio.aws_reporter module<a class="headerlink" href="#module-boogio.aws_reporter" title="Permalink to this headline">¶</a></h1>
+<p>Report information from collections of <code class="docutils literal"><span class="pre">AWSInformer</span></code> instances.</p>
+<p>So you&#8217;ve used <code class="docutils literal"><span class="pre">AWSSurveyor</span></code> to pull records for a few hundred EC2
+instances, a handful of VPCs and a few dozen subnets, maybe some ELBs.
+What now? With the <code class="docutils literal"><span class="pre">aws_reporter</span></code> package, you can easily define and
+re-use report definitions to extract specific fields from a set of
+<code class="docutils literal"><span class="pre">AWSInformer</span></code> instances and return the results in a variety of
+formats:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Text separated value formats such as csv and tsv.</li>
+<li>Lists of dicts or lists of structured lists.</li>
+<li>Raw or JSON format nested data structures.</li>
+<li>Excel worksheets.</li>
+</ul>
+</div></blockquote>
+<p class="rubric">Example</p>
+<p>A typical work flow proceeds as follows:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">boogio.aws_surveyor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">boogio.aws_reporter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span> <span class="o">=</span> <span class="n">aws_surveyor</span><span class="o">.</span><span class="n">AWSSurveyor</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">profiles</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">],</span> <span class="n">regions</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;us-east-1&#39;</span><span class="p">,</span> <span class="s1">&#39;us-west-1&#39;</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">survey</span><span class="p">(</span><span class="s1">&#39;ec2&#39;</span><span class="p">,</span> <span class="s1">&#39;subnet&#39;</span><span class="p">,</span> <span class="s1">&#39;vpc&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reporter</span> <span class="o">=</span> <span class="n">aws_reporter</span><span class="o">.</span><span class="n">AWSReporter</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">boogio</span> <span class="k">import</span> <span class="n">report_definitions</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reporter</span><span class="o">.</span><span class="n">add_packaged_report_definitions</span><span class="p">([</span><span class="n">report_definitions</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">report_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;EC2Instances&#39;</span><span class="p">,</span> <span class="s1">&#39;EC2Existential&#39;</span><span class="p">,</span> <span class="s1">&#39;Subnets&#39;</span><span class="p">,</span> <span class="s1">&#39;VPCs&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">report_names</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">reporter</span><span class="o">.</span><span class="n">write_tsv</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">surveyor</span><span class="o">=</span><span class="n">surveyor</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">report_names</span><span class="o">=</span><span class="p">[</span><span class="n">name</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">output_path</span><span class="o">=</span><span class="n">name</span>
+<span class="gp">... </span>    <span class="p">)</span>
+</pre></div>
+</div>
+<p>This will create files <code class="file docutils literal"><span class="pre">EC2Instances.tsv</span></code>,
+<code class="file docutils literal"><span class="pre">EC2Existential.tsv</span></code>, <code class="file docutils literal"><span class="pre">Subnets.tsv</span></code> and <code class="file docutils literal"><span class="pre">VPCs.tsv</span></code>
+in the current working directory with the records retrieved by the
+surveyor.</p>
+<p>A few things of which to take note:</p>
+<blockquote>
+<div><ul class="simple">
+<li>The example demonstrates passing AWS entity records by passing
+an <code class="docutils literal"><span class="pre">AWSSurveyor</span></code> instance. You can also pass a list of
+<code class="docutils literal"><span class="pre">AWSInformer</span></code> instances directly with the <code class="docutils literal"><span class="pre">informers</span></code>
+argument.</li>
+<li>Instances of <code class="docutils literal"><span class="pre">aws_reporter.ReportDefinition</span></code> can be assigned
+to an <code class="docutils literal"><span class="pre">AWSReporter</span></code> instance. The
+<code class="docutils literal"><span class="pre">add_packaged_report_definitions()</span></code> method loads report
+definitions from a python package, by default from the
+<code class="docutils literal"><span class="pre">aws_reporter</span></code> package. The <code class="docutils literal"><span class="pre">add_report_definitions()</span></code>
+method adds instances of <code class="docutils literal"><span class="pre">aws_reporter.ReportDefinition</span></code>
+directly.</li>
+<li>You can use individual reports that are assigned to a reporter
+by specifying their <code class="docutils literal"><span class="pre">name</span></code> attribute when calling reporting
+methods as shown. You can also pass report definitions to
+reporting methods directly using the <code class="docutils literal"><span class="pre">report_definitions</span></code>
+argument in place of the <code class="docutils literal"><span class="pre">report_names</span></code> argument.</li>
+<li>The appropriate file suffix for the output file format is
+automatically appended.</li>
+</ul>
+</div></blockquote>
+<div class="section" id="report-definitions">
+<h2>Report Definitions<a class="headerlink" href="#report-definitions" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">ReportDefinition</span></code> class defines the fields that will be
+extracted for an atomic report. Each <code class="docutils literal"><span class="pre">ReportDefinition</span></code> specifies
+paths into the <code class="docutils literal"><span class="pre">to_dict()</span></code> representation of an <code class="docutils literal"><span class="pre">AWSInformer</span></code>
+type as <code class="docutils literal"><span class="pre">prune</span></code> specifications. See the documentation for
+<code class="docutils literal"><span class="pre">utensils.prune</span></code> for details.</p>
+<p>An example report definition:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">elb_report</span> <span class="o">=</span> <span class="n">aws_reporter</span><span class="o">.</span><span class="n">ReportDefinition</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;LoadBalancers&#39;</span><span class="p">,</span>
+    <span class="n">entity_type</span><span class="o">=</span><span class="s1">&#39;elb&#39;</span><span class="p">,</span>
+    <span class="n">prune_specs</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">{</span><span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="s1">&#39;meta.profile_name&#39;</span><span class="p">,</span> <span class="s1">&#39;path_to_none&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="s1">&#39;meta.region_name&#39;</span><span class="p">,</span> <span class="s1">&#39;path_to_none&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="s1">&#39;LoadBalancerName&#39;</span><span class="p">,</span> <span class="s1">&#39;path_to_none&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="s1">&#39;VPCId.Tags:Name&#39;</span><span class="p">,</span> <span class="s1">&#39;path_to_none&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="s1">&#39;Scheme&#39;</span><span class="p">,</span> <span class="s1">&#39;path_to_none&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="s1">&#39;CreatedTime&#39;</span><span class="p">,</span> <span class="s1">&#39;path_to_none&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="s1">&#39;DNSName&#39;</span><span class="p">,</span> <span class="s1">&#39;path_to_none&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="s1">&#39;AvailabilityZones&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;path_to_none&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s1">&#39;value_refiner&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span><span class="p">])</span>
+            <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="s1">&#39;DNSIpAddress.INET.[]&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;flatten_leaves&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s1">&#39;path_to_none&#39;</span><span class="p">:</span> <span class="kc">True</span>
+            <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="s1">&#39;Instances&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;value_refiner&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">,</span>
+            <span class="s1">&#39;path_to_none&#39;</span><span class="p">:</span> <span class="kc">True</span>
+            <span class="p">},</span>
+        <span class="p">],</span>
+    <span class="n">default_column_order</span><span class="o">=</span><span class="p">[</span>
+        <span class="s1">&#39;meta.profile_name&#39;</span><span class="p">,</span> <span class="s1">&#39;meta.region_name&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;VPCId.Tags:Name&#39;</span><span class="p">,</span> <span class="s1">&#39;LoadBalancerName&#39;</span><span class="p">,</span> <span class="s1">&#39;DNSIpAddress.INET&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Scheme&#39;</span><span class="p">,</span> <span class="s1">&#39;CreatedTime&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;DNSName&#39;</span><span class="p">,</span> <span class="s1">&#39;AvailabilityZones&#39;</span><span class="p">,</span> <span class="s1">&#39;Instances&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">ReportDefinition</span></code> instance <code class="docutils literal"><span class="pre">extract_from()</span></code> method is used to
+extract the fields from the appropriate <code class="docutils literal"><span class="pre">AWSInformer</span></code> subclass. The
+<code class="docutils literal"><span class="pre">extract_from()</span></code> method can return results either as nested
+structures directly extracted from the Informer&#8217;s dictionary
+representation or as flattened structures: list of dicts, each dict of
+which has only scalars among its values. The boolean <code class="docutils literal"><span class="pre">flat</span></code> argument
+to <code class="docutils literal"><span class="pre">extract_from()</span></code> selects which structure is returned;
+<code class="docutils literal"><span class="pre">flat=True</span></code> (the default) for flattened structures, <code class="docutils literal"><span class="pre">flat=False</span></code>
+for nested.</p>
+<p><strong>Examples</strong></p>
+<blockquote>
+<div><ul>
+<li><p class="first">Extract a flattened report from an
+<code class="docutils literal"><span class="pre">aws_informer.EC2InstanceInformer</span></code> instance:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span> <span class="o">=</span> <span class="n">aws_surveyor</span><span class="o">.</span><span class="n">AWSSurveyor</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">profiles</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">],</span> <span class="n">regions</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;us-east-1&#39;</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surveyor</span><span class="o">.</span><span class="n">survey</span><span class="p">(</span><span class="s1">&#39;ec2&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">informer</span> <span class="o">=</span> <span class="n">surveyor</span><span class="o">.</span><span class="n">informers</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">definition</span> <span class="o">=</span> <span class="n">boogio</span><span class="o">.</span><span class="n">report_definitions</span><span class="o">.</span><span class="n">ec2_report</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">definition</span><span class="o">.</span><span class="n">extract_from</span><span class="p">(</span><span class="n">informer</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Extract a nested report from the same instance:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">definition</span><span class="o">.</span><span class="n">extract_from</span><span class="p">(</span><span class="n">informer</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div></blockquote>
+<dl class="class">
+<dt id="boogio.aws_reporter.AWSReporter">
+<em class="property">class </em><code class="descclassname">boogio.aws_reporter.</code><code class="descname">AWSReporter</code><span class="sig-paren">(</span><em>packaged_report_definitions=False</em>, <em>report_definitions=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#AWSReporter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.AWSReporter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Report information from collections of <code class="docutils literal"><span class="pre">AWSInformer</span></code> instances.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>packaged_report_definitions</strong> (<em>bool</em><em>, </em><em>optional</em>) &#8211; Assign reports defined in the
+<code class="docutils literal"><span class="pre">boogio.report_definitions</span></code> module to this
+reporter.</li>
+<li><strong>report_definitions</strong> (<em>list of ReportDefinition</em><em>, </em><em>optional</em>) &#8211; Assign the specified list of report definitions to this
+reporter.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="boogio.aws_reporter.AWSReporter.report_definitions">
+<code class="descname">report_definitions</code><a class="reference internal" href="_modules/boogio/aws_reporter.html#AWSReporter.report_definitions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.AWSReporter.report_definitions" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>list of ReportDefinition</em> &#8211; The report definitions, if any, assigned to this instance.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_reporter.AWSReporter.add_packaged_report_definitions">
+<code class="descname">add_packaged_report_definitions</code><span class="sig-paren">(</span><em>packages</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#AWSReporter.add_packaged_report_definitions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.AWSReporter.add_packaged_report_definitions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assign additional report definitions to this instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>packages</strong> (<em>list of packages</em>) &#8211; The list of packages in which to find report
+definitions.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">NameError</span></code> &#8211; If any item in report_definitions has a <code class="docutils literal"><span class="pre">name</span></code>
+attribute that already occurs as the <code class="docutils literal"><span class="pre">name</span></code>
+attribute of an assigned report definition.</td>
+</tr>
+</tbody>
+</table>
+<p>The <code class="docutils literal"><span class="pre">add_packaged_report_definitions()</span></code> method finds any
+instances of <code class="docutils literal"><span class="pre">aws_reporter.ReportDefinition</span></code> in the
+indicated packages and assigns them to this
+<code class="docutils literal"><span class="pre">aws_reporter.AWSReporter</span></code> instance. The packages must have
+already been imported.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_reporter.AWSReporter.add_report_definitions">
+<code class="descname">add_report_definitions</code><span class="sig-paren">(</span><em>report_definitions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#AWSReporter.add_report_definitions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.AWSReporter.add_report_definitions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assign additional report definitions to this instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>report_definitions</strong> (<em>list of aws_reporter.ReportDefinition</em>) &#8211; The list of report definitions to assign.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">NameError</span></code> &#8211; If any item in report_definitions has a <code class="docutils literal"><span class="pre">name</span></code>
+attribute that already occurs as the <code class="docutils literal"><span class="pre">name</span></code>
+attribute of an assigned report definition.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_reporter.AWSReporter.add_worksheets">
+<code class="descname">add_worksheets</code><span class="sig-paren">(</span><em>workbook</em>, <em>informers=None</em>, <em>surveyors=None</em>, <em>report_names=None</em>, <em>report_definitions=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#AWSReporter.add_worksheets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.AWSReporter.add_worksheets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate reports and write to an <code class="docutils literal"><span class="pre">xlsxwriter</span></code> workbook.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>workbook</strong> (<em>xlsxwriter.Worksheet</em>) &#8211; The workbook to populate.</td>
+</tr>
+</tbody>
+</table>
+<p>See the documentation for <code class="docutils literal"><span class="pre">report()</span></code> for details on other
+arguments and exceptions. Note that <code class="docutils literal"><span class="pre">flat</span></code> is not an
+allowed argument for this method, as the reports must be
+flat for this format.</p>
+<p>This method writes reports to worksheets in an
+<code class="docutils literal"><span class="pre">xlsxwriter.Workbook</span></code> instance passed as its first
+positional argument. It will set the name of each worksheet
+to the name of the report written to that worksheet.</p>
+<p>Returns: <code class="docutils literal"><span class="pre">None</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_reporter.AWSReporter.csv_list">
+<code class="descname">csv_list</code><span class="sig-paren">(</span><em>informers=None</em>, <em>surveyors=None</em>, <em>report_name=None</em>, <em>report_definition=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#AWSReporter.csv_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.AWSReporter.csv_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a comma separated report as a list of lines.</p>
+<p>See the documentation for <code class="docutils literal"><span class="pre">report()</span></code> for details on
+arguments and exceptions. Note that <code class="docutils literal"><span class="pre">flat</span></code> is not an
+allowed argument for this method, as the reports must be
+flat for this format.</p>
+<p>Returns: A list of comma-separated strings.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_reporter.AWSReporter.json_dumps">
+<code class="descname">json_dumps</code><span class="sig-paren">(</span><em>informers=None</em>, <em>surveyors=None</em>, <em>report_name=None</em>, <em>report_definition=None</em>, <em>flat=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#AWSReporter.json_dumps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.AWSReporter.json_dumps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a report in JSON format.</p>
+<p>See the documentation for <code class="docutils literal"><span class="pre">report()</span></code> for details on
+arguments and exceptions.</p>
+<p>Returns: A JSON string.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_reporter.AWSReporter.report">
+<code class="descname">report</code><span class="sig-paren">(</span><em>informers=None</em>, <em>surveyors=None</em>, <em>report_name=None</em>, <em>report_definition=None</em>, <em>flat=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#AWSReporter.report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.AWSReporter.report" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a report as plain python.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>informers</strong> (<em>list of AWSInformer</em><em>, </em><em>optional</em>) &#8211; A list of informers on which to report.</li>
+<li><strong>surveyors</strong> (<em>list of AWSSurveyor</em><em>, </em><em>optional</em>) &#8211; A list of surveyors on whose <code class="docutils literal"><span class="pre">informers()</span></code> list to
+report.</li>
+<li><strong>report_name</strong> (<em>str</em><em>, </em><em>optional</em>) &#8211; The name of aa <code class="docutils literal"><span class="pre">aws_reporter.ReportDefinition</span></code>
+instance assigned to this reporter to be generated.</li>
+<li><strong>report_definition</strong> (<a class="reference internal" href="#boogio.aws_reporter.AWSReporter" title="boogio.aws_reporter.AWSReporter"><em>AWSReporter</em></a><em>, </em><em>optional</em>) &#8211; An <code class="docutils literal"><span class="pre">aws_reporter.ReportDefinition</span></code> instance to be
+generated.</li>
+<li><strong>flat</strong> (<em>bool</em><em>, </em><em>default=True</em>) &#8211; A flag to pass through to the report definition
+<code class="docutils literal"><span class="pre">extract_from()</span></code> method. See the documentation of
+that method for details.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first simple">
+<li><code class="xref py py-exc docutils literal"><span class="pre">IndexError</span></code> &#8211; If <code class="docutils literal"><span class="pre">report_names</span></code> contains any values that
+aren&#8217;t the <code class="docutils literal"><span class="pre">name</span></code> attribute of a member of
+<code class="docutils literal"><span class="pre">self.report_definitions()</span></code>.</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code> &#8211; If no report definitions are assigned to this
+reporter and <code class="docutils literal"><span class="pre">report_definitions</span></code> is not defined.</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code> &#8211; If neither <code class="docutils literal"><span class="pre">informers</span></code> nor <code class="docutils literal"><span class="pre">surveyors</span></code>
+is defined.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The result of the selected <code class="docutils literal"><span class="pre">ReportDefinition</span></code>
+extracting from the list of informer targets.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>At least one of <code class="docutils literal"><span class="pre">informers</span></code> and <code class="docutils literal"><span class="pre">surveyors</span></code> is required,
+although the lists may be empty.</p>
+<p>If both <code class="docutils literal"><span class="pre">informers</span></code> an <code class="docutils literal"><span class="pre">surveyors</span></code> are specified, the
+resulting report will include data from all informers in the
+former list and the latter&#8217;s <code class="docutils literal"><span class="pre">informers()</span></code> method.</p>
+<p>Exactly one of <code class="docutils literal"><span class="pre">report_name</span></code> and <code class="docutils literal"><span class="pre">report_definition</span></code> is
+required.</p>
+<p><strong>Report Structure</strong></p>
+<p>The value returned from <code class="docutils literal"><span class="pre">report()</span></code> is the result of calling
+the <code class="docutils literal"><span class="pre">ReportDefinition.extract_from()</span></code> method on lists of
+informers. Thus the result will be a list of flat dicts (if
+the <code class="docutils literal"><span class="pre">flat</span></code> argument had the default <code class="docutils literal"><span class="pre">True</span></code> value) or
+nested dicts (if the <code class="docutils literal"><span class="pre">flat</span></code> argument was explicitly set to
+<code class="docutils literal"><span class="pre">False</span></code>).</p>
+<p>E.g., if <code class="docutils literal"><span class="pre">flat</span></code> is <code class="docutils literal"><span class="pre">True</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="o">&lt;</span><span class="n">flat</span> <span class="n">record</span> <span class="nb">dict</span><span class="o">&gt;</span><span class="p">},</span> <span class="p">{</span><span class="o">&lt;</span><span class="n">flat</span> <span class="n">record</span> <span class="nb">dict</span><span class="o">&gt;</span><span class="p">},</span> <span class="o">...</span> <span class="p">]</span>
+</pre></div>
+</div>
+<p>And if <code class="docutils literal"><span class="pre">flat</span></code> is explicitly set to <code class="docutils literal"><span class="pre">False</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="o">&lt;</span><span class="n">nested</span> <span class="n">informer</span> <span class="nb">dict</span><span class="o">&gt;</span><span class="p">},</span> <span class="p">{</span><span class="o">&lt;</span><span class="n">nested</span> <span class="n">informer</span> <span class="nb">dict</span><span class="o">&gt;</span><span class="p">},</span> <span class="o">...</span> <span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">report_definitions</code><span class="sig-paren">(</span><em>*names</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#AWSReporter.report_definitions"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Get assigned report definitions by name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>names</strong> (<em>tuple of str</em>) &#8211; The names of the reports to return.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list of report definitions whose names are those
+in the <code class="docutils literal"><span class="pre">names</span></code> tuple.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_reporter.AWSReporter.report_names">
+<code class="descname">report_names</code><span class="sig-paren">(</span><em>*report_definitions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#AWSReporter.report_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.AWSReporter.report_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get names of report definitions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">All names of report definitions in the
+report_definitions tuple or in the report definitions
+assigned to this reporter.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_reporter.AWSReporter.reports">
+<code class="descname">reports</code><span class="sig-paren">(</span><em>informers=None</em>, <em>surveyors=None</em>, <em>report_names=None</em>, <em>report_definitions=None</em>, <em>flat=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#AWSReporter.reports"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.AWSReporter.reports" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate multiple reports as plain python.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>report_names</strong> (<em>list of str</em><em>, </em><em>optional</em>) &#8211; A list of names of <code class="docutils literal"><span class="pre">aws_reporter.ReportDefinition</span></code>
+instances assigned to this reporter that define the
+reports to be generated.</li>
+<li><strong>report_definitions</strong> (<em>list of AWSReporter</em><em>, </em><em>optional</em>) &#8211; A list of <code class="docutils literal"><span class="pre">aws_reporter.ReportDefinition</span></code> instances
+that define the reports to be generated.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal"><span class="pre">IndexError</span></code> &#8211; If <code class="docutils literal"><span class="pre">report_names</span></code> contains any values that
+aren&#8217;t the <code class="docutils literal"><span class="pre">name</span></code> attribute of a member of
+<code class="docutils literal"><span class="pre">self.report_definitions()</span></code>.</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code> &#8211; If no report definitions are assigned to this
+reporter and <code class="docutils literal"><span class="pre">report_definitions</span></code> is not defined.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>See the documentation for <code class="docutils literal"><span class="pre">report()</span></code> for additional
+arguments, return values and exceptions raised.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Each key in the dict is the name of a report, and
+the corresponding value is the result of that named
+<code class="docutils literal"><span class="pre">ReportDefinition</span></code> extracting from the list of informer
+targets.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+<p>This method calls the singular <code class="docutils literal"><span class="pre">report()</span></code> method once for
+each report name and report definition, and returns the
+results as a dict whose keys are the names of each report.</p>
+<p><strong>Reports Structure</strong></p>
+<p>The value returned from <code class="docutils literal"><span class="pre">reports()</span></code> is a dict where each
+value represents the result of calling the singular
+<code class="docutils literal"><span class="pre">report()</span></code> method for one of the selected report definitions
+with other arguments unchanged. Thus each value will be a list
+of flat dicts (if the <code class="docutils literal"><span class="pre">flat</span></code> argument had the default
+<code class="docutils literal"><span class="pre">True</span></code> value) or nested dicts (if the <code class="docutils literal"><span class="pre">flat</span></code> argument was
+explicitly set to <code class="docutils literal"><span class="pre">False</span></code>).</p>
+<p>E.g., if <code class="docutils literal"><span class="pre">flat</span></code> is <code class="docutils literal"><span class="pre">True</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="n">report_name_1</span><span class="p">:</span> <span class="p">[{</span><span class="o">&lt;</span><span class="n">flat</span> <span class="nb">dict</span><span class="o">&gt;</span><span class="p">},</span> <span class="p">{</span><span class="o">&lt;</span><span class="n">flat</span> <span class="nb">dict</span><span class="o">&gt;</span><span class="p">},</span> <span class="o">...</span> <span class="p">],</span>
+    <span class="n">report_name_2</span><span class="p">:</span> <span class="p">[{</span><span class="o">&lt;</span><span class="n">flat</span> <span class="nb">dict</span><span class="o">&gt;</span><span class="p">},</span> <span class="p">{</span><span class="o">&lt;</span><span class="n">flat</span> <span class="nb">dict</span><span class="o">&gt;</span><span class="p">},</span> <span class="o">...</span> <span class="p">],</span>
+    <span class="o">...</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+<p>And if <code class="docutils literal"><span class="pre">flat</span></code> is explicitly set to <code class="docutils literal"><span class="pre">False</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="n">report_name_1</span><span class="p">:</span> <span class="p">[{</span><span class="o">&lt;</span><span class="n">nested</span> <span class="nb">dict</span><span class="o">&gt;</span><span class="p">},</span> <span class="p">{</span><span class="o">&lt;</span><span class="n">nested</span> <span class="nb">dict</span><span class="o">&gt;</span><span class="p">},</span> <span class="o">...</span> <span class="p">],</span>
+    <span class="n">report_name_2</span><span class="p">:</span> <span class="p">[{</span><span class="o">&lt;</span><span class="n">nested</span> <span class="nb">dict</span><span class="o">&gt;</span><span class="p">},</span> <span class="p">{</span><span class="o">&lt;</span><span class="n">nested</span> <span class="nb">dict</span><span class="o">&gt;</span><span class="p">},</span> <span class="o">...</span> <span class="p">],</span>
+    <span class="o">...</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_reporter.AWSReporter.sv_list">
+<code class="descname">sv_list</code><span class="sig-paren">(</span><em>separator='</em>, <em>'</em>, <em>informers=None</em>, <em>surveyors=None</em>, <em>report_name=None</em>, <em>report_definition=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#AWSReporter.sv_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.AWSReporter.sv_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a string separated report as a list of lines.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>separator</strong> (<em>str</em><em>, </em><em>default='</em><em>,</em><em>'</em>) &#8211; The string with which to
+separate the values in each line.</td>
+</tr>
+</tbody>
+</table>
+<p>See the documentation for <code class="docutils literal"><span class="pre">report()</span></code> for details on other
+arguments and exceptions. Note that <code class="docutils literal"><span class="pre">flat</span></code> is not an
+allowed argument for this method, as the reports must be
+flat for this format.</p>
+<p>Returns: A list of comma-separated strings.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_reporter.AWSReporter.tabulizer">
+<code class="descname">tabulizer</code><span class="sig-paren">(</span><em>informers=None</em>, <em>surveyors=None</em>, <em>report_name=None</em>, <em>report_definition=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#AWSReporter.tabulizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.AWSReporter.tabulizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a report stored in a <code class="docutils literal"><span class="pre">utensils.tabulizer</span></code>.</p>
+<p>See the documentation for <code class="docutils literal"><span class="pre">report()</span></code> for details on
+arguments and exceptions. Note that <code class="docutils literal"><span class="pre">flat</span></code> is not an
+allowed argument for this method, as the reports must be
+flat for this format.</p>
+<p>Returns: A <code class="docutils literal"><span class="pre">utensils.tabulizer.Tabulizer</span></code> instance.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_reporter.AWSReporter.tabulizers">
+<code class="descname">tabulizers</code><span class="sig-paren">(</span><em>informers=None</em>, <em>surveyors=None</em>, <em>report_names=None</em>, <em>report_definitions=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#AWSReporter.tabulizers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.AWSReporter.tabulizers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate multiple reports in <code class="docutils literal"><span class="pre">utensils.tabulizer</span></code> instances.</p>
+<p>See the documentation for <code class="docutils literal"><span class="pre">reports()</span></code> for details on
+arguments and exceptions. Note that <code class="docutils literal"><span class="pre">flat</span></code> is not an
+allowed argument for this method, as the reports must be
+flat for this format.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Each key in the dict is the name of a report, and
+the corresponding value is the result of calling
+<code class="docutils literal"><span class="pre">tabulizer</span></code> with that report specified.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_reporter.AWSReporter.tsv_list">
+<code class="descname">tsv_list</code><span class="sig-paren">(</span><em>informers=None</em>, <em>surveyors=None</em>, <em>report_name=None</em>, <em>report_definition=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#AWSReporter.tsv_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.AWSReporter.tsv_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a tab separated report as a list of lines.</p>
+<p>See the documentation for <code class="docutils literal"><span class="pre">report()</span></code> for details on
+arguments and exceptions. Note that <code class="docutils literal"><span class="pre">flat</span></code> is not an
+allowed argument for this method, as the reports must be
+flat for this format.</p>
+<p>Returns: A list of tab-separated strings.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_reporter.AWSReporter.write_csv">
+<code class="descname">write_csv</code><span class="sig-paren">(</span><em>output_path</em>, <em>informers=None</em>, <em>surveyors=None</em>, <em>report_name=None</em>, <em>report_definition=None</em>, <em>overwrite=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#AWSReporter.write_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.AWSReporter.write_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a comma separated report to a specified file.</p>
+<p>This method is a pseudonym for <code class="docutils literal"><span class="pre">write_sv()</span></code>
+with <code class="docutils literal"><span class="pre">separator=','</span></code>. See the documentation for
+<code class="docutils literal"><span class="pre">write_sv()</span></code> for details on arguments and exceptions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_reporter.AWSReporter.write_json">
+<code class="descname">write_json</code><span class="sig-paren">(</span><em>output_path</em>, <em>informers=None</em>, <em>surveyors=None</em>, <em>report_name=None</em>, <em>report_definition=None</em>, <em>flat=True</em>, <em>overwrite=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#AWSReporter.write_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.AWSReporter.write_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a JSON report to a specified file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>output_path</strong> (<em>string</em>) &#8211; The path to the resulting workbook.</li>
+<li><strong>overwrite</strong> (<em>bool</em><em>, </em><em>default=False</em>) &#8211; If <code class="docutils literal"><span class="pre">True</span></code>, overwrite any existing file already
+present.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>See the documentation for <code class="docutils literal"><span class="pre">write_report()</span></code> for details on
+other arguments and exceptions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_reporter.AWSReporter.write_sv">
+<code class="descname">write_sv</code><span class="sig-paren">(</span><em>output_path</em>, <em>separator='</em>, <em>'</em>, <em>informers=None</em>, <em>surveyors=None</em>, <em>report_name=None</em>, <em>report_definition=None</em>, <em>overwrite=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#AWSReporter.write_sv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.AWSReporter.write_sv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a string separated report to a specified file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>separator</strong> (<em>str</em><em>, </em><em>default='</em><em>,</em><em>'</em>) &#8211; The string with which to
+separate the values in each line.</li>
+<li><strong>output_path</strong> (<em>string</em>) &#8211; The path to the resulting workbook.</li>
+<li><strong>overwrite</strong> (<em>bool</em><em>, </em><em>default=False</em>) &#8211; If <code class="docutils literal"><span class="pre">True</span></code>, overwrite any existing file already
+present.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>See the documentation for <code class="docutils literal"><span class="pre">report()</span></code> for details on other
+arguments and exceptions. Note that <code class="docutils literal"><span class="pre">flat</span></code> is not an
+allowed argument for this method, as the reports must be
+flat for this format.</p>
+<p>This method writes reports to a separated value file using
+the specified separator string.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If <code class="docutils literal"><span class="pre">overwrite</span></code> is <code class="docutils literal"><span class="pre">False</span></code> and a file
+already exists at the location specified by
+<code class="docutils literal"><span class="pre">output_path</span></code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <code class="docutils literal"><span class="pre">None</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_reporter.AWSReporter.write_tsv">
+<code class="descname">write_tsv</code><span class="sig-paren">(</span><em>output_path</em>, <em>informers=None</em>, <em>surveyors=None</em>, <em>report_name=None</em>, <em>report_definition=None</em>, <em>overwrite=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#AWSReporter.write_tsv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.AWSReporter.write_tsv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a tab separated report to a specified file.</p>
+<p>This method is a pseudonym for <code class="docutils literal"><span class="pre">write_sv()</span></code>
+with <code class="docutils literal"><span class="pre">separator='\t'</span></code>. See the documentation for
+<code class="docutils literal"><span class="pre">write_sv()</span></code> for details on arguments and exceptions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_reporter.AWSReporter.write_workbook">
+<code class="descname">write_workbook</code><span class="sig-paren">(</span><em>output_path</em>, <em>informers=None</em>, <em>surveyors=None</em>, <em>report_names=None</em>, <em>report_definitions=None</em>, <em>overwrite=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#AWSReporter.write_workbook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.AWSReporter.write_workbook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a report written to <code class="docutils literal"><span class="pre">xlsxwriter</span></code> worksheets.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>output_path</strong> (<em>string</em>) &#8211; The path to the resulting workbook.</li>
+<li><strong>overwrite</strong> (<em>bool</em><em>, </em><em>default=False</em>) &#8211; If <code class="docutils literal"><span class="pre">True</span></code>, overwrite any existing file already
+present.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>See the documentation for <code class="docutils literal"><span class="pre">report()</span></code> for details on other
+arguments and exceptions. Note that <code class="docutils literal"><span class="pre">flat</span></code> is not an
+allowed argument for this method, as the reports must be
+flat for this format.</p>
+<p>This method writes reports to worksheets in a
+<code class="docutils literal"><span class="pre">xlsxwriter.Workbook</span></code> instance passed as its first
+positional argument.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If <code class="docutils literal"><span class="pre">overwrite</span></code> is <code class="docutils literal"><span class="pre">False</span></code> and a file
+already exists at the location specified by
+<code class="docutils literal"><span class="pre">output_path</span></code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Returns: <code class="docutils literal"><span class="pre">None</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="boogio.aws_reporter.ReportDefinition">
+<em class="property">class </em><code class="descclassname">boogio.aws_reporter.</code><code class="descname">ReportDefinition</code><span class="sig-paren">(</span><em>name</em>, <em>entity_type</em>, <em>prune_specs=None</em>, <em>default_column_order=None</em>, <em>default_path_to_none=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#ReportDefinition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.ReportDefinition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Manage AWSReporter report definitions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>string</em>) &#8211; The descriptive name for the report.</li>
+<li><strong>entity_type</strong> (<em>string</em>) &#8211; The entity type of the AWSInformer subclass the report
+extracts.</li>
+<li><strong>prune_specs</strong> (<em>list of dict</em><em>, </em><em>optional</em>) &#8211; The specifications for the prune paths the report
+extracts.</li>
+<li><strong>default_column_order</strong> (<em>list of str</em><em>, </em><em>optional</em>) &#8211; An optional list of the prune paths defining the default
+columns and their order for columnar reports from this
+report definition.</li>
+<li><strong>default_path_to_none</strong> (<em>bool</em><em>, </em><em>default=True</em>) &#8211; The default value for the <code class="docutils literal"><span class="pre">path_to_none</span></code> item in each of
+the report definition&#8217;s prune specs. The <code class="docutils literal"><span class="pre">path_to_none</span></code>
+value for any prune spec entry that doesn&#8217;t explicitly
+define it will be set to this value.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="boogio.aws_reporter.ReportDefinition.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#ReportDefinition.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.ReportDefinition.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy of a ReportDefinition instance.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_reporter.ReportDefinition.extract_from">
+<code class="descname">extract_from</code><span class="sig-paren">(</span><em>informers</em>, <em>flat=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_reporter.html#ReportDefinition.extract_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_reporter.ReportDefinition.extract_from" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract the fields specified by prune_specs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>informers</strong> (<em>list of AWSInformer</em>) &#8211; <code class="docutils literal"><span class="pre">AWSInformer</span></code> instances from which to extract
+report data. Any informer whose <code class="docutils literal"><span class="pre">entity_type</span></code>
+attribute doesn&#8217;t match the report definition&#8217;s
+<code class="docutils literal"><span class="pre">entity_type</span></code> attribute will be skipped.</li>
+<li><strong>flat</strong> (<em>bool</em>) &#8211; If <code class="docutils literal"><span class="pre">True</span></code>, return a <em>flat</em> result; if <code class="docutils literal"><span class="pre">False</span></code>,
+return a nested result. See the documentation for
+<code class="docutils literal"><span class="pre">utensils.prune</span></code> and <code class="docutils literal"><span class="pre">utensils.flatten</span></code>
+for more information.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.aws_reporter.ReportDefinition.prune_specs">
+<code class="descname">prune_specs</code><a class="headerlink" href="#boogio.aws_reporter.ReportDefinition.prune_specs" title="Permalink to this definition">¶</a></dt>
+<dd><p>ReportDefinition prune_specs property.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="boogio.sqs_sifter.html" class="btn btn-neutral float-right" title="boogio.sqs_sifter module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="boogio.aws_surveyor.html" class="btn btn-neutral" title="boogio.aws_surveyor module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Scott Brown.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
