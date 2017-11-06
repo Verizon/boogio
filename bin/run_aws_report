@@ -1,0 +1,321 @@
+#!/usr/bin/env python
+
+# ----------------------------------------------------------------------------
+# Copyright (C) 2017 Verizon.  All Rights Reserved.
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# ----------------------------------------------------------------------------
+
+'''Generate reports on AWS entities.'''
+
+import argparse
+import logging
+import math
+import os
+import re
+import sys
+
+from datetime import datetime
+
+from boogio import aws_reporter
+from boogio import aws_surveyor
+
+LOG_HANDLE = 'run_aws_report_logger'
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+def initialize_logging(args):
+    '''Initialize loggers, handlers and formatters.'''
+
+    logger = logging.getLogger(LOG_HANDLE)
+    logger.setLevel(logging.DEBUG)
+
+    # Logging handler for stdout messages.
+    sh = logging.StreamHandler()
+    sh_loglevel = [logging.WARNING, logging.INFO, logging.DEBUG]
+    sh.setLevel(sh_loglevel[min(args.verbose, 2)])
+    logger.addHandler(sh)
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+def log_startup_configuration(args):
+    '''Log execution start and configuration information.'''
+
+    logger = logging.getLogger(LOG_HANDLE)
+
+    logger.info('#%s', ' -' * 32)
+    logger.info('#%sStarting watchit', ' ' * 24)
+    logger.info('#%s', ' -' * 32)
+    logger.info('Trial run mode: %s', str(args.trial_run))
+    logger.debug('Process PID: %s', os.getpid())
+    logger.info('Log file is %s', args.log_path)
+
+    logger.debug('Command line parameters:')
+    for a in [a for a in dir(args) if a[0] != '_']:
+        logger.debug('    {:<16}\t{}'.format(a, getattr(args, a)))
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+def all_reports(reporter=None):
+    '''Return the names of all reports currently assigned to reporter.'''
+    if reporter is None:
+        reporter = aws_reporter.AWSReporter(
+            packaged_report_definitions=True
+            )
+
+    return reporter.report_names()
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+def help_epilog(reporter=None):
+    '''List the names of available reports in the help message.'''
+
+    col_sep = '    '
+
+    def report_names_columnized():
+        '''Break report names text lines into columns.'''
+        longest_report_name_length = max([len(r) for r in all_reports()])
+        report_names_aligned = [
+            "{:{}}".format(x, longest_report_name_length)
+            for x in all_reports()
+            ]
+        cols = 3
+
+        return ('\n%s' % col_sep).join([
+            '\t'.join(report_names_aligned[cols * i:cols * i + cols])
+            for i in range(
+                int(math.ceil(len(all_reports(reporter)) / float(cols)))
+                )
+        ])
+
+    return (
+        'The following reports are available:' +
+        ('\n\n%s' % col_sep) +
+        report_names_columnized() +
+        '\n '
+        )
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+def argument_parser():
+    '''Define parser for command line arguments.'''
+
+    parser = argparse.ArgumentParser(
+        description='Run indicated AWS reports and output results.',
+        epilog=help_epilog(),
+        formatter_class=argparse.RawDescriptionHelpFormatter
+        )
+
+    parser.add_argument(
+        '-f', '--format',
+        choices=['csv', 'tsv', 'xls', 'json'],
+        default='csv',
+        help='''output file format. '''
+        )
+
+    parser.add_argument(
+        '--no-expand',
+        default=False,
+        action='store_true',
+        help='''don't expand informers. '''
+        )
+
+    parser.add_argument(
+        '-o', '--outputfile',
+        default='aws_report',
+        help='''output file name. '''
+        )
+
+    parser.add_argument(
+        '--overwrite',
+        default=False,
+        action='store_true',
+        help='''overwrite existing output file, if present. '''
+        )
+
+    parser.add_argument(
+        '-p', '--profiles',
+        nargs='*',
+        default=(),
+        help='''aws connection profile names. '''
+        )
+
+    parser.add_argument(
+        '-r', '--reports',
+        metavar="REPORT",
+        nargs='*',
+        choices=all_reports(),
+        default=(),
+        help='''reports to generate. '''
+        )
+
+    parser.add_argument(
+        '--show-paths',
+        default=False,
+        action='store_true',
+        help='''Show extractable paths available in retrieved entities. '''
+        )
+
+    parser.add_argument(
+        '--show-report-paths',
+        default=False,
+        action='store_true',
+        help='''Show paths defining selected reports. '''
+        )
+
+    parser.add_argument(
+        '-v', '--verbose',
+        dest='verbose',
+        default=0,
+        action='count',
+        help='''show more output.'''
+        )
+
+    return parser
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+def main():
+    '''Main execution entry point.'''
+
+    utc_start_time = datetime.utcnow()
+
+    # global args
+    parser = argument_parser()
+    args = parser.parse_args()
+
+    # - - - - - - - - - - - - - - - - - - - - - - - -
+    # Add the appropriate format suffix (e.g. .json or .tsv)
+    # if it's not already present on args.outputfile.
+    # - - - - - - - - - - - - - - - - - - - - - - - -
+    if args.outputfile:
+        match = re.match(
+            r'(?P<name>.*)\.%s$' % args.format,
+            args.outputfile
+            )
+        base_outputfile = match.group('name') if match else args.outputfile
+        args.outputfile = '.'.join([base_outputfile, args.format])
+
+    # Used for verbose output.
+    initialize_logging(args)
+    log_startup_configuration(args)
+    logger = logging.getLogger(LOG_HANDLE)
+
+    if len(args.reports) == 0:
+        parser.print_help()
+        sys.exit(0)
+
+    reporter = aws_reporter.AWSReporter(
+        packaged_report_definitions=True
+        )
+
+    if args.show_report_paths:
+        for defn in [
+                d for d in reporter.report_definitions()
+                if d.name in args.reports
+                ]:  # pylint: disable=bad-continuation
+            for prune_spec in defn.prune_specs:
+                print prune_spec['path']
+        sys.exit(0)
+
+    # Let's save time by checking this now.
+    if os.path.exists(args.outputfile) and not args.overwrite:
+        raise RuntimeError('output file %s already exists.' % args.outputfile)
+
+    # We need to check for show_report_paths above before this check.
+    if len(args.reports) > 1 and args.format != 'xls':
+        raise ValueError('multiple reports for non-xls format not supported')
+
+    # - - - - - - - - - - - - - - - - - - - - - - - -
+    # Create surveyor and run survey.
+    # - - - - - - - - - - - - - - - - - - - - - - - -
+    entity_types = list(set(
+        # [spec['entity_type'] for spec in selected_reporter_specs]
+        [
+            d.entity_type for d in reporter.report_definitions()
+            if d.name in args.reports
+            ]
+        ))
+
+    logger.info("Surveying entity types: %s", ', '.join(entity_types))
+
+    surveyor = aws_surveyor.AWSSurveyor(
+        profiles=args.profiles,
+        set_all_regions=True
+        )
+
+    utc_mark_time = datetime.utcnow()
+    surveyor.survey(*entity_types)
+    utc_mark_complete_time = datetime.utcnow()
+
+    logger.info("Retrieved %i informers", len(surveyor.informers()))
+    logger.info(
+        'Survey duration: %s (total elapsed time: %s)',
+        utc_mark_complete_time - utc_mark_time,
+        utc_mark_complete_time - utc_start_time
+        )
+
+    if not args.no_expand:
+
+        logger.info("Expanding informers...")
+
+        utc_mark_time = datetime.utcnow()
+        [i.expand() for i in surveyor.informers()]
+        utc_mark_complete_time = datetime.utcnow()
+
+        logger.info("Expansion complete")
+
+        logger.info(
+            'Expansion duration: %s (total elapsed time: %s)',
+            utc_mark_complete_time - utc_mark_time,
+            utc_mark_complete_time - utc_start_time
+            )
+
+    if args.show_paths:
+        for path in surveyor.all_paths():
+            print path
+        sys.exit(0)
+
+    # - - - - - - - - - - - - - - - - - - - - - - - -
+    # Write appropriately formatted output.
+    # - - - - - - - - - - - - - - - - - - - - - - - -
+
+    if args.format == 'xls':
+        logger.info('Writing to Excel workbook %s', args.outputfile)
+        reporter.write_workbook(
+            output_path=args.outputfile,
+            surveyors=[surveyor],
+            report_names=args.reports,
+            overwrite=args.overwrite
+            )
+    else:
+        logger.info('Writing to %s file %s', args.format, args.outputfile)
+        {
+            'json': reporter.write_json,
+            'csv': reporter.write_csv,
+            'tsv': reporter.write_tsv,
+            }[args.format](
+                output_path=args.outputfile,
+                surveyors=[surveyor],
+                report_name=args.reports[0],
+                overwrite=args.overwrite
+                )
+
+    logger.info('Final elapsed time: %s', datetime.utcnow() - utc_start_time)
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if __name__ == "__main__":
+    main()

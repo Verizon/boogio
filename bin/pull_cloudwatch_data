@@ -1,0 +1,258 @@
+#!/usr/bin/env python
+
+# ----------------------------------------------------------------------------
+# Copyright (C) 2017 Verizon.  All Rights Reserved.
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# ----------------------------------------------------------------------------
+
+'''Pull CloudWatch metrics for a specified time range and entity set.'''
+
+import argparse
+import itertools
+import json
+import logging
+import os
+import time
+
+from datetime import datetime, timedelta
+
+import boto3
+
+
+FILENAME = os.path.split(__file__)[-1]
+BASE_FILENAME = FILENAME[:-3] if FILENAME[-3:] == '.py' else FILENAME
+
+DEFAULT_LOG_FILE_NAME = '.'.join([BASE_FILENAME, 'log'])
+DEFAULT_LOG_PATH = os.path.join(os.getcwd(), DEFAULT_LOG_FILE_NAME)
+
+DATETIME_STRING_FORMAT = "%Y-%m-%dT%H:%M:%S"
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+def argument_parser():
+    '''Define command line arguments.'''
+
+    parser = argparse.ArgumentParser(
+        description='''
+        Pull CloudWatch metrics for a specified time range and entity set.
+        '''
+        )
+
+    parser.add_argument(
+        '--end',
+        help='''metric collection local end time (YYYY-mm-ddThh:mm:ss). '''
+        )
+
+    parser.add_argument(
+        '-l', '--log-path',
+        default=DEFAULT_LOG_PATH,
+        help='''
+            path to desired log file (DEFAULT: %s).
+            ''' % DEFAULT_LOG_FILE_NAME
+        )
+
+    parser.add_argument(
+        '--no-log',
+        default=False,
+        action='store_true',
+        help='''don't write a log file.'''
+        )
+
+    parser.add_argument(
+        '-o', '--output_file',
+        help='''path to desired JSON output file.'''
+        )
+
+    parser.add_argument(
+        '-p', '--profile',
+        help='''aws connection profile name. '''
+        )
+
+    parser.add_argument(
+        '-r', '--region',
+        help='''aws connection region name. '''
+        )
+
+    parser.add_argument(
+        '--start',
+        help='''metric collection local start time (YYYY-mm-ddThh:mm:ss). '''
+        )
+
+    parser.add_argument(
+        '-v', '--verbose',
+        dest='verbose',
+        default=0,
+        action='count',
+        help='''show more output.'''
+        )
+
+    return parser
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+def initialize_logging(args):
+    '''Initialize loggers, handlers and formatters.
+
+    A stream handler and file handler are added to the root logger.
+    '''
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+
+    # Logging handler for log file
+    if not args.no_log:
+        fhandler = logging.FileHandler(args.log_path)
+        fhandler.setLevel(logging.DEBUG)
+        fformatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            )
+        fhandler.setFormatter(fformatter)
+        logger.addHandler(fhandler)
+
+    # Logging handler for stdout messages.
+    shandler = logging.StreamHandler()
+
+    sh_loglevel = [logging.WARNING, logging.INFO, logging.DEBUG]
+    shandler.setLevel(sh_loglevel[min(args.verbose, 2)])
+
+    # if shandler.level < logging.INFO:
+    #     sformatter = logging.Formatter(
+    #         '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    #         )
+    #     shandler.setFormatter(sformatter)
+    logger.addHandler(shandler)
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+def log_startup_configuration(args):
+    '''Log execution start and configuration information.'''
+
+    logger = logging.getLogger(__name__)
+
+    logger.info('#%s', ' -' * 32)
+    logger.info('#%sStarting %s', ' ' * 24, FILENAME)
+    logger.info('#%s', ' -' * 32)
+    logger.debug('Process PID: %s', os.getpid())
+    logger.info('Log file is %s', args.log_path)
+
+    logger.debug('Command line parameters:')
+    for attr in [attr for attr in dir(args) if attr[0] != '_']:
+        attr_log_entry = '    {:<16}\t{}'.format(attr, getattr(args, attr))
+        logger.debug(attr_log_entry)
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+def get_metric_statistics(
+        metrics, service_instances, clargs
+        ):  # pylint: disable=bad-continuation
+    '''Retrieve CloudWatch metrics.
+
+    Arguements:
+
+        metric (str):
+            The AWS CloudWatch *MetricName* field.
+
+        service_instances (dict):
+            A dictionary with instance_id key-value pairs and other
+            (optional and arbitrary) per-instance fields.
+
+        test_start, test_end (datetime.datetime):
+            The start and end times for the metric retrieval.
+
+        client (boto3.session.Client):
+            The boto3 client for the connection.
+
+    '''
+
+    sess = boto3.session.Session(
+        profile_name=clargs.profile, region_name=clargs.region
+        )
+    client = sess.client('cloudwatch')
+
+    utc_offset = 60 * 60 * int(
+        round(float(
+            (datetime.utcnow() - datetime.now()).seconds) / (60 * 60))
+        )
+    test_start = (
+        datetime.strptime(clargs.start, DATETIME_STRING_FORMAT) +
+        timedelta(seconds=utc_offset)
+        ).strftime(DATETIME_STRING_FORMAT)
+
+    test_end = (
+        datetime.strptime(clargs.end, DATETIME_STRING_FORMAT) +
+        timedelta(seconds=utc_offset)
+        ).strftime(DATETIME_STRING_FORMAT)
+
+    data = []
+    for service_instance, metric in itertools.product(
+            service_instances, metrics
+            ):  # pylint: disable=bad-continuation
+
+        data_now = dict(service_instance, **{'metric': metric})
+
+        metric_statistics = client.get_metric_statistics(
+            Namespace='AWS/EC2',
+            MetricName=metric,
+            Dimensions=[
+                {
+                    'Name': 'InstanceId',
+                    'Value': service_instance['instance_id']
+                    },
+                ],
+            StartTime=test_start,
+            EndTime=test_end,
+            Period=60,
+            Statistics=['Average', 'Minimum', 'Maximum'],
+            )
+
+        data_now.update(
+            {'datapoints': metric_statistics['Datapoints']}
+            )
+
+        for datum in data_now['datapoints']:
+            datum['TimeSerial'] = time.mktime(datum['Timestamp'].timetuple())
+            datum['Timestamp'] = datum['Timestamp'].strftime(
+                "%Y-%m-%dT%H:%M:%S"
+                )
+
+        data_now['datapoints'].sort(key=lambda x: x['TimeSerial'])
+        data.append(data_now)
+
+    return data
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+def main():
+    '''Main program entry point.'''
+
+    parser = argument_parser()
+    args = parser.parse_args()
+
+    initialize_logging(args)
+    log_startup_configuration(args)
+
+    service_instances = [
+    ]
+
+    metrics = ['CPUUtilization', 'NetworkOut']
+
+    data = get_metric_statistics(metrics, service_instances, args)
+    with open(args.output_file, 'w') as fptr:
+        json.dump(data, fptr)
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if __name__ == "__main__":
+    main()
