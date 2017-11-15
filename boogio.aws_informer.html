@@ -133,8 +133,885 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="boogio-aws-informer-module">
-<h1>boogio.aws_informer module<a class="headerlink" href="#boogio-aws-informer-module" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-boogio.aws_informer">
+<span id="boogio-aws-informer-module"></span><h1>boogio.aws_informer module<a class="headerlink" href="#module-boogio.aws_informer" title="Permalink to this headline">¶</a></h1>
+<p>Manage connecting to and retrieving information for specified AWS entities.</p>
+<p>An instance of <code class="docutils literal"><span class="pre">AWSInformer</span></code> corresponds to some type of AWS entity,
+and includes functionality to help manage the data associated with
+that entity and its related AWS elements. Some examples include:</p>
+<blockquote>
+<div><ul class="simple">
+<li>An EC2 instance includes references to entities such as VPCs,
+subnets, security groups and so on. Using the
+<code class="docutils literal"><span class="pre">EC2InstanceInformer</span></code> subclass of <code class="docutils literal"><span class="pre">AWSInformer</span></code>, you can
+easily associate records for these entities and see their
+relationships with the record for the EC2 instance.</li>
+<li>AWS entities have Tags that are represented internally as a
+mapping <code class="docutils literal"><span class="pre">{&quot;Key&quot;:</span> <span class="pre">key,</span> <span class="pre">&quot;Value&quot;:</span> <span class="pre">value}</span></code>. Using
+an informer you can treat these as a mapping
+<code class="docutils literal"><span class="pre">{&quot;key&quot;:</span> <span class="pre">&quot;value&quot;}</span></code> for easier manipulation.</li>
+<li>Elastic Load Balancer entities have a DNS entry field, whose
+corresponding IP address an <code class="docutils literal"><span class="pre">ELBInformer</span></code> instance can look
+up and treat as a full fledged attribute of the informer.</li>
+</ul>
+</div></blockquote>
+<p><code class="docutils literal"><span class="pre">AWSInformer</span></code> instances retrieve their data through an instance of
+the` <code class="docutils literal"><span class="pre">AWSMediator</span></code> class. The <code class="docutils literal"><span class="pre">AWSMediator</span></code> instance caches entity
+information so that, for example, multiple EC2 instances with the same
+AWS Security Group assigned don&#8217;t trigger multiple AWS queries for the
+Security Group&#8217;s data.</p>
+<p>You can define filters in an <code class="docutils literal"><span class="pre">AWSMediator</span></code> instance that will be
+applied to limit the entities retrieved from AWS by that mediator.
+Mediator filters are defined per entity type using the
+<code class="docutils literal"><span class="pre">add_filters()</span></code> method. The allowed filters are generally those for
+the relevant client&#8217;s <code class="docutils literal"><span class="pre">describe_X()</span></code> method, where <code class="docutils literal"><span class="pre">X</span></code> depends on
+the entity type. Thus the legal filters for an &#8220;eip&#8221; entity type are
+those documented in the ec2 client&#8217;s <code class="docutils literal"><span class="pre">describe_addresses()</span></code> method,
+etc.</p>
+<dl class="class">
+<dt id="boogio.aws_informer.AWSInformer">
+<em class="property">class </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">AWSInformer</code><span class="sig-paren">(</span><em>resource</em>, <em>region_name=None</em>, <em>profile_name=None</em>, <em>mediator=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AWSInformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AWSInformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Manage selected information for specified AWS entities.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>resource</strong> (<em>dict</em>) &#8211; An AWS resource being handled by this informer.</li>
+<li><strong>profile_name</strong> (<em>string</em>) &#8211; The name of the AWS profile to use for this informer&#8217;s
+mediator.</li>
+<li><strong>region_name</strong> (<em>string</em>) &#8211; The name of the AWS region to use for this informer&#8217;s
+mediator.</li>
+<li><strong>mediator</strong> (<a class="reference internal" href="#boogio.aws_informer.AWSMediator" title="boogio.aws_informer.AWSMediator"><em>aws_informer.AWSMediator</em></a>) &#8211; An AWSMediator instance this resource should use.</li>
+<li><strong>required_resource_type</strong> &#8211; The type() of the AWS resource boto class the informer is
+intended to handle.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="boogio.aws_informer.AWSInformer.identifier">
+<code class="descname">identifier</code><a class="headerlink" href="#boogio.aws_informer.AWSInformer.identifier" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em> &#8211; A string which uniquely identifies this
+informer, appropriate for the entity type. For example,
+the InstanceID for an EC2InstanceInformer or the
+LoadBalancerName for an ELBInformer.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.aws_informer.AWSInformer.resource">
+<code class="descname">resource</code><a class="headerlink" href="#boogio.aws_informer.AWSInformer.resource" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>dict</em> &#8211; The original record for the AWS entity this
+Informer instance manages.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.aws_informer.AWSInformer.expansions">
+<code class="descname">expansions</code><a class="headerlink" href="#boogio.aws_informer.AWSInformer.expansions" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>dict</em> &#8211; The child resources found when expanding this informer.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.aws_informer.AWSInformer.supplementals">
+<code class="descname">supplementals</code><a class="headerlink" href="#boogio.aws_informer.AWSInformer.supplementals" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>dict</em> &#8211; Additional information assigned to this informer.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.aws_informer.AWSInformer.is_expanded">
+<code class="descname">is_expanded</code><a class="headerlink" href="#boogio.aws_informer.AWSInformer.is_expanded" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>bool</em> &#8211; <code class="docutils literal"><span class="pre">True</span></code> if this informer&#8217;s <code class="docutils literal"><span class="pre">expand()</span></code> method has been
+called; <code class="docutils literal"><span class="pre">False</span></code> otherwise.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.aws_informer.AWSInformer.promote_to_top_level">
+<code class="descname">promote_to_top_level</code><a class="headerlink" href="#boogio.aws_informer.AWSInformer.promote_to_top_level" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>list</em> &#8211; A list of top level <code class="docutils literal"><span class="pre">resource</span></code> keys that will be handled
+specially in <code class="docutils literal"><span class="pre">AWSInformer.to_dict()</span></code>. See the
+documentation for <code class="docutils literal"><span class="pre">to_dict()</span></code> for details.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.aws_informer.AWSInformer.elisions">
+<code class="descname">elisions</code><a class="headerlink" href="#boogio.aws_informer.AWSInformer.elisions" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>list</em> &#8211; A list of top level <code class="docutils literal"><span class="pre">resource</span></code> keys that will be handled
+specially in <code class="docutils literal"><span class="pre">AWSInformer.to_dict()</span></code>. See the
+documentation for <code class="docutils literal"><span class="pre">to_dict()</span></code> for details.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.aws_informer.AWSInformer.entity_type">
+<code class="descname">entity_type</code><a class="headerlink" href="#boogio.aws_informer.AWSInformer.entity_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the <code class="docutils literal"><span class="pre">AWSMediator</span></code> entity type for this informer.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_informer.AWSInformer.expand">
+<code class="descname">expand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AWSInformer.expand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AWSInformer.expand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch selected entity details and populate the expansions attribute.</p>
+<p>The expansions attribute is a dictionary whose keys match the
+name of some attribute of the <code class="docutils literal"><span class="pre">resource</span></code> attribute, and
+whose values are either AWSInformer instances or lists of
+AWSInformer instances.</p>
+<p>Expanding an informer pulls the records from AWS (via the
+informer&#8217;s mediator) for other AWS entities only referenced
+by id in the original resource record.</p>
+<p>Each AWSInformer instance in the expansions will in turn be
+expanded.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">identifier</code></dt>
+<dd><p>Return the unique identifier string for this informer.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_informer.AWSInformer.json_dumps">
+<code class="descname">json_dumps</code><span class="sig-paren">(</span><em>flat=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AWSInformer.json_dumps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AWSInformer.json_dumps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a JSON representation of the informer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>flat</strong> (<em>bool</em>) &#8211; <p>If the <code class="docutils literal"><span class="pre">flat</span></code> parameter is True, the data structure
+returned will be a list of flattened (no nested
+structures) dicts obtained by calling the informer&#8217;s
+<code class="docutils literal"><span class="pre">to_dict()</span></code> method with <code class="docutils literal"><span class="pre">flat=True</span></code>.</p>
+<p>For more information on flattening, see the
+documentation for <code class="docutils literal"><span class="pre">utensils.flatten</span></code>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_informer.AWSInformer.to_dict">
+<code class="descname">to_dict</code><span class="sig-paren">(</span><em>entity_identifier=False</em>, <em>flat=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AWSInformer.to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AWSInformer.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dict structure using expanded subelements when available.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>entity_identifier</strong> (<em>bool</em><em>, </em><em>default=False</em>) &#8211; If <code class="docutils literal"><span class="pre">True</span></code>, the dict will include an
+<code class="docutils literal"><span class="pre">entity_identifier</span></code> field whose value is the
+entity&#8217;s <code class="docutils literal"><span class="pre">identifier</span></code> attribute. If false, the
+<code class="docutils literal"><span class="pre">entity_identifier</span></code> field won&#8217;t be included.</li>
+<li><strong>flat</strong> (<em>bool</em><em>, </em><em>default=False</em>) &#8211; If the <code class="docutils literal"><span class="pre">flat</span></code> parameter is True, the data structure
+returned will be a list of flattened (no nested
+structures) dicts. For more information on flattening,
+see the documentation for <code class="docutils literal"><span class="pre">utensils.flatten</span></code>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The result of <code class="docutils literal"><span class="pre">to_dict()</span></code> is guaranteed to be a serializable
+structure suitable for JSON conversion. If any subentities are
+encountered that raise an error when converting to JSON, they
+will be replaced with their string representation
+via``str()``.</p>
+<p>The result returned by <code class="docutils literal"><span class="pre">to_dict()</span></code> will include the
+informer instance information with the following adjustments.</p>
+<ul>
+<li><p class="first">Any top level keys in the informer&#8217;s <code class="docutils literal"><span class="pre">elisions</span></code> list
+will be omitted from the result of <code class="docutils literal"><span class="pre">to_dict()</span></code>. As
+working with expanded entities can generate significant
+amounts of data, you may sometimes want to use this to
+omit unneeded substructures to speed up subsequent
+processing.</p>
+</li>
+<li><p class="first">The <code class="docutils literal"><span class="pre">expansions</span></code> value will replace the <code class="docutils literal"><span class="pre">resource</span></code>
+value for any top level key present in both.</p>
+</li>
+<li><p class="first">AWS entities store the names and values of their tags as
+the value of the <code class="docutils literal"><span class="pre">Key</span></code> and <code class="docutils literal"><span class="pre">Value</span></code> items in a dict. In
+the structure returned by <code class="docutils literal"><span class="pre">to_dict()</span></code>, a tag
+<code class="docutils literal"><span class="pre">some_tag</span></code></p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="s1">&#39;Tags&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Key&#39;</span><span class="p">:</span> <span class="s1">&#39;some_tag&#39;</span><span class="p">,</span> <span class="s1">&#39;Value&#39;</span><span class="p">:</span> <span class="s1">&#39;some_value&#39;</span><span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>will be represented as</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="s1">&#39;Tags:some_tag&#39;</span><span class="p">:</span> <span class="s1">&#39;some_value&#39;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>at the top level of the returned dict.</p>
+</li>
+<li><p class="first">Any keys in the top level of the informer&#8217;s resource that
+are present in the informer&#8217;s <code class="docutils literal"><span class="pre">promote_to_top_level</span></code>
+list will be treated similarly to tags. If the value of
+that key is a dict, it will be replaced with a set of top
+level entries. For example, if <code class="docutils literal"><span class="pre">TopKey</span></code> appears in the
+<code class="docutils literal"><span class="pre">promote_to_top_level</span></code> list, then the top level item</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="s1">&#39;TopKey&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Key1&#39;</span><span class="p">:</span> <span class="s1">&#39;Val1&#39;</span><span class="p">,</span> <span class="s1">&#39;Key2&#39;</span><span class="p">:</span> <span class="s1">&#39;Val2&#39;</span><span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>will be replaced with the top level items</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="s1">&#39;TopKey:Key1&#39;</span><span class="p">:</span> <span class="s1">&#39;Val1&#39;</span>
+<span class="s1">&#39;TopKey:Key2&#39;</span><span class="p">:</span> <span class="s1">&#39;Val2&#39;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>at the top level of the returned dict.</p>
+<p>Note that this will raise an error if the value to be
+promoted isn&#8217;t a dict.</p>
+</li>
+<li><p class="first">The resulting dict will be updated with the items in the
+informer&#8217;s <code class="docutils literal"><span class="pre">supplementals</span></code> dict. If any of these are
+themselves informers, their <code class="docutils literal"><span class="pre">to_dict()</span></code> method will be
+called.</p>
+</li>
+<li><p class="first">The resulting dict will be flat if the <code class="docutils literal"><span class="pre">flat</span></code> argument
+is <code class="docutils literal"><span class="pre">True</span></code>.</p>
+</li>
+</ul>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="boogio.aws_informer.AWSInformerError">
+<em class="property">exception </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">AWSInformerError</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AWSInformerError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AWSInformerError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+<p>An error associated with an AWS Informer has occurred.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="boogio.aws_informer.AWSInformerRegionError">
+<em class="property">exception </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">AWSInformerRegionError</code><span class="sig-paren">(</span><em>msg=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AWSInformerRegionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AWSInformerRegionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.aws_informer.AWSInformerError" title="boogio.aws_informer.AWSInformerError"><code class="xref py py-class docutils literal"><span class="pre">boogio.aws_informer.AWSInformerError</span></code></a></p>
+<p>An AWSInformer error associated with an AWS region has occurred.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="boogio.aws_informer.AWSInformerResourceError">
+<em class="property">exception </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">AWSInformerResourceError</code><span class="sig-paren">(</span><em>msg=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AWSInformerResourceError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AWSInformerResourceError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.aws_informer.AWSSessionError" title="boogio.aws_informer.AWSSessionError"><code class="xref py py-class docutils literal"><span class="pre">boogio.aws_informer.AWSSessionError</span></code></a></p>
+<p>An associated with an AWS Informer resource has occurred.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="boogio.aws_informer.AWSInformerResourceTypeError">
+<em class="property">exception </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">AWSInformerResourceTypeError</code><span class="sig-paren">(</span><em>msg=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AWSInformerResourceTypeError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AWSInformerResourceTypeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.aws_informer.AWSSessionError" title="boogio.aws_informer.AWSSessionError"><code class="xref py py-class docutils literal"><span class="pre">boogio.aws_informer.AWSSessionError</span></code></a></p>
+<p>An error associated with the type of an AWS Informer has occurred.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="boogio.aws_informer.AWSMediator">
+<em class="property">class </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">AWSMediator</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AWSMediator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AWSMediator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.aws_informer.AWSSession" title="boogio.aws_informer.AWSSession"><code class="xref py py-class docutils literal"><span class="pre">boogio.aws_informer.AWSSession</span></code></a></p>
+<p>Manage wholesale AWS entity retrieval in a lazy fashion.</p>
+<p>See <code class="docutils literal"><span class="pre">AWSSession</span></code> for argument descriptions.</p>
+<p>The <code class="docutils literal"><span class="pre">AWSMediator</span></code> class extends <code class="docutils literal"><span class="pre">AWSSession</span></code> to provide AWS
+entity data retrieval and caching.</p>
+<ul class="simple">
+<li>Through its <code class="docutils literal"><span class="pre">entities()</span></code> method, an <code class="docutils literal"><span class="pre">AWSMediator</span></code> instance
+makes transparent the distinction between AWS entities that
+are full fledged AWS services (e.g., <em>ec2</em>, <em>s3</em>) and entities
+that are retrieved through other services (e.g., <em>security
+group</em>, <em>network interface</em>).</li>
+<li>An <code class="docutils literal"><span class="pre">AWSMediator</span></code> instance caches records it has retrieved so
+that subsequent requests for the same entity don&#8217;t required an
+additional AWS query. It also caches AWSInformers so that the
+same informers are used when the same mediator is present.</li>
+<li>In some cases, an <code class="docutils literal"><span class="pre">AWSMediator</span></code> parallelizes AWS queries for
+faster retrieval.</li>
+</ul>
+<p>Entity retrieval filters can be added to the mediator on a per-
+entity-type basis. These filters will then limit the entities
+retrieved from AWS for that entity type. See the <code class="docutils literal"><span class="pre">add_filters()</span></code>
+method for details.</p>
+<dl class="attribute">
+<dt id="boogio.aws_informer.AWSMediator.PARALLEL_FETCH_PROCESS_COUNT">
+<code class="descname">PARALLEL_FETCH_PROCESS_COUNT</code><em class="property"> = 48</em><a class="headerlink" href="#boogio.aws_informer.AWSMediator.PARALLEL_FETCH_PROCESS_COUNT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_informer.AWSMediator.add_filters">
+<code class="descname">add_filters</code><span class="sig-paren">(</span><em>entity_type</em>, <em>new_filters</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AWSMediator.add_filters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AWSMediator.add_filters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add AWS entity retrieval filters to the mediator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>entity_type</strong> (<em>string</em>) &#8211; An informer entity type to which this filter will
+apply.</li>
+<li><strong>new_filters</strong> (<em>dict</em>) &#8211; The <em>Name</em> strings and <em>Values</em> lists for the filters.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mediator</span> <span class="o">=</span> <span class="n">aws_informer</span><span class="o">.</span><span class="n">AWSMediator</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mediator</span><span class="o">.</span><span class="n">add_filters</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s1">&#39;ec2&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;instance-state-name&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;running&#39;</span><span class="p">]}</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mediator</span><span class="o">.</span><span class="n">filters</span>
+<span class="go">{&#39;ec2&#39;: {&#39;instance-state-name&#39;: [&#39;running&#39;]}}}</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mediator</span><span class="o">.</span><span class="n">add_filters</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s1">&#39;eip&#39;</span><span class="p">,</span> <span class="p">{</span>
+<span class="gp">... </span>        <span class="s1">&#39;public-ip&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;123.45.67.89&#39;</span><span class="p">,</span> <span class="s1">&#39;56.78.91.234&#39;</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="s1">&#39;domain&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;vpc&#39;</span><span class="p">]</span>
+<span class="gp">... </span>        <span class="p">}</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mediator</span><span class="o">.</span><span class="n">filters</span>
+<span class="go">{&#39;ec2&#39;: {&#39;instance-state-name&#39;: [&#39;running&#39;]}},</span>
+<span class="go">&#39;eip&#39;, {&#39;public-ip&#39;: [&#39;123.45.67.89&#39;, &#39;56.78.91.234&#39;],</span>
+<span class="go">&#39;domain&#39;: [&#39;vpc&#39;]}}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_informer.AWSMediator.client">
+<code class="descname">client</code><span class="sig-paren">(</span><em>client_type</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AWSMediator.client"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AWSMediator.client" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a client from the _clients dict, creating one if needed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>client_type</strong> (<em>string</em>) &#8211; The type of AWS client to create; e.g., <code class="docutils literal"><span class="pre">ec2</span></code> or
+<code class="docutils literal"><span class="pre">s3</span></code>.</td>
+</tr>
+</tbody>
+</table>
+<p>An <code class="docutils literal"><span class="pre">AWSMediator</span></code> instance maintains an internal list of AWS
+clients for different AWS services, created using this
+mediator&#8217;s <code class="docutils literal"><span class="pre">Session</span></code> instance. This method returns the
+client for the indicated entity type, creating a new client
+if one isn&#8217;t already present.</p>
+<p>Note that client types are a subset of the legal
+<code class="docutils literal"><span class="pre">AWSInformer</span></code> entity types.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_informer.AWSMediator.entities">
+<code class="descname">entities</code><span class="sig-paren">(</span><em>entity_type</em>, <em>use_filters=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AWSMediator.entities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AWSMediator.entities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve entities from AWS (if necessary) and return them as a list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>entity_type</strong> (<em>string</em>) &#8211; The entity type requested.</li>
+<li><strong>use_filters</strong> (<em>bool</em><em>, </em><em>default=True</em>) &#8211; If <code class="docutils literal"><span class="pre">_fetch()</span></code> is called to retrieve entities, this
+will be passed to control entity filtering. Note that
+this only happens if this entity type hasn&#8217;t
+previously been fetched.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This is a wrapper that hides the distinction between entity
+types like <code class="docutils literal"><span class="pre">ec2</span></code> and <code class="docutils literal"><span class="pre">s3</span></code> that correspond to AWS services
+and other entity types that don&#8217;t.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_informer.AWSMediator.flush">
+<code class="descname">flush</code><span class="sig-paren">(</span><em>*cached_entity_types</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AWSMediator.flush"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AWSMediator.flush" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove indicated entity types from the internal cache.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cached_entity_types</strong> (<em>tuple of string</em>) &#8211; The entity types to flush. If not specified, all
+cached entities will be flushed.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="boogio.aws_informer.AWSMediator.get_aws_info_in_parallel">
+<em class="property">classmethod </em><code class="descname">get_aws_info_in_parallel</code><span class="sig-paren">(</span><em>requests</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AWSMediator.get_aws_info_in_parallel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AWSMediator.get_aws_info_in_parallel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use subprocess pools to retrieve multiple data requests in parallel.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>requests</strong> (<em>list of dicts</em>) &#8211; <p>A mapping defining the parameters for the requests
+in question. The expected key/value pairs include:</p>
+<dl class="docutils">
+<dt><em>origin</em></dt>
+<dd>A passback field for the caller to identify to
+which entity the data returned for this request
+belongs.</dd>
+<dt><em>client_type</em></dt>
+<dd>The type of client needed to handle this request.</dd>
+<dt><em>client_method</em></dt>
+<dd>The client method needed to handle this request.</dd>
+<dt><em>method_args</em>, <em>method_kwargs</em></dt>
+<dd>The args and kwargs to pass to the client method.</dd>
+<dt><em>response_data_keys</em></dt>
+<dd>The keys for the items in the method response that
+contain the actual data, rather than response
+metadata or other information.</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list of pairs [[request, response]...] where each
+response has the client method return value for this
+request. Each response will be a dict whose keys are
+response_data_keys and whose values are the values of
+those keys in client_method call return dicts.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.aws_informer.AWSMediator.informer_cache">
+<code class="descname">informer_cache</code><em class="property"> = {}</em><a class="headerlink" href="#boogio.aws_informer.AWSMediator.informer_cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.aws_informer.AWSMediator.profile_name">
+<code class="descname">profile_name</code><a class="headerlink" href="#boogio.aws_informer.AWSMediator.profile_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the profile property.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_informer.AWSMediator.remove_all_filters">
+<code class="descname">remove_all_filters</code><span class="sig-paren">(</span><em>*remove_types</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AWSMediator.remove_all_filters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AWSMediator.remove_all_filters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove AWS entity retrieval filters from the mediator.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_informer.AWSMediator.services">
+<code class="descname">services</code><span class="sig-paren">(</span><em>service_type</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AWSMediator.services"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AWSMediator.services" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve a list of services, if necessary, and return the list.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="boogio.aws_informer.AWSMediatorError">
+<em class="property">exception </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">AWSMediatorError</code><span class="sig-paren">(</span><em>msg=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AWSMediatorError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AWSMediatorError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.aws_informer.AWSSessionError" title="boogio.aws_informer.AWSSessionError"><code class="xref py py-class docutils literal"><span class="pre">boogio.aws_informer.AWSSessionError</span></code></a></p>
+<p>An error associated with an AWS Mediator has occurred.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="boogio.aws_informer.AWSSession">
+<em class="property">class </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">AWSSession</code><span class="sig-paren">(</span><em>region_name=None</em>, <em>profile_name=None</em>, <em>session=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AWSSession"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AWSSession" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Manage AWS sessions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>region_name</strong> (<em>string</em><em>, </em><em>optional</em>) &#8211; The name of the AWS region to use for session
+creation. This is passed through to initialize a
+<code class="docutils literal"><span class="pre">boto3.session.Session</span></code> instance.</li>
+<li><strong>profile_name</strong> (<em>string</em><em>, </em><em>optional</em>) &#8211; The name of the profile record in
+<code class="file docutils literal"><span class="pre">$HOME/.aws/credentials</span></code> to use for session
+creation. This is passed through to initialize a
+<code class="docutils literal"><span class="pre">boto3.session.Session</span></code> instance.</li>
+<li><strong>session</strong> (<em>boto3.session.Session</em><em>, </em><em>optional</em>) &#8211; An existing <code class="docutils literal"><span class="pre">boto3.session.Session</span></code> instance to
+use for connections.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If an existing session and either a</li>
+<li>profile_name or region_name are provided.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>An <code class="docutils literal"><span class="pre">AWSSession</span></code> is a simple wrapper for the underlying boto3
+session.</p>
+<dl class="attribute">
+<dt id="boogio.aws_informer.AWSSession.profile_name">
+<code class="descname">profile_name</code><a class="headerlink" href="#boogio.aws_informer.AWSSession.profile_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property getter.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_informer.AWSSession.refresh_session">
+<code class="descname">refresh_session</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AWSSession.refresh_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AWSSession.refresh_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recreate <code class="docutils literal"><span class="pre">self.session</span></code> with the current parameters.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="boogio.aws_informer.AWSSessionError">
+<em class="property">exception </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">AWSSessionError</code><span class="sig-paren">(</span><em>msg=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AWSSessionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AWSSessionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+<p>An error associated with an AWS Session has occurred.</p>
+<dl class="method">
+<dt id="boogio.aws_informer.AWSSessionError.__str__">
+<code class="descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AWSSessionError.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AWSSessionError.__str__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a string representation.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="boogio.aws_informer.AutoScalingGroupInformer">
+<em class="property">class </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">AutoScalingGroupInformer</code><span class="sig-paren">(</span><em>resource</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AutoScalingGroupInformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AutoScalingGroupInformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.aws_informer.AWSInformer" title="boogio.aws_informer.AWSInformer"><code class="xref py py-class docutils literal"><span class="pre">boogio.aws_informer.AWSInformer</span></code></a></p>
+<p>Manage selected information for an AutoScalingGroup resource.</p>
+<dl class="method">
+<dt id="boogio.aws_informer.AutoScalingGroupInformer.expand">
+<code class="descname">expand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#AutoScalingGroupInformer.expand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.AutoScalingGroupInformer.expand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch selected entity details.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="boogio.aws_informer.EC2InstanceInformer">
+<em class="property">class </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">EC2InstanceInformer</code><span class="sig-paren">(</span><em>resource</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#EC2InstanceInformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.EC2InstanceInformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.aws_informer.AWSInformer" title="boogio.aws_informer.AWSInformer"><code class="xref py py-class docutils literal"><span class="pre">boogio.aws_informer.AWSInformer</span></code></a></p>
+<p>Manage selected information for an EC2 Instance resource.</p>
+<dl class="method">
+<dt id="boogio.aws_informer.EC2InstanceInformer.expand">
+<code class="descname">expand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#EC2InstanceInformer.expand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.EC2InstanceInformer.expand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch selected entity details.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="boogio.aws_informer.EIPInformer">
+<em class="property">class </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">EIPInformer</code><span class="sig-paren">(</span><em>resource</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#EIPInformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.EIPInformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.aws_informer.AWSInformer" title="boogio.aws_informer.AWSInformer"><code class="xref py py-class docutils literal"><span class="pre">boogio.aws_informer.AWSInformer</span></code></a></p>
+<p>Manage selected information for an Elastic IP resource.</p>
+<dl class="method">
+<dt id="boogio.aws_informer.EIPInformer.expand">
+<code class="descname">expand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#EIPInformer.expand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.EIPInformer.expand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch selected entity details.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="boogio.aws_informer.ELBInformer">
+<em class="property">class </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">ELBInformer</code><span class="sig-paren">(</span><em>resource</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#ELBInformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.ELBInformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.aws_informer.AWSInformer" title="boogio.aws_informer.AWSInformer"><code class="xref py py-class docutils literal"><span class="pre">boogio.aws_informer.AWSInformer</span></code></a></p>
+<p>Manage selected information for an ELB resource.</p>
+<dl class="method">
+<dt id="boogio.aws_informer.ELBInformer.expand">
+<code class="descname">expand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#ELBInformer.expand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.ELBInformer.expand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch selected entity details.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="boogio.aws_informer.ELBInformer.get_dns_address_info">
+<em class="property">classmethod </em><code class="descname">get_dns_address_info</code><span class="sig-paren">(</span><em>dns_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#ELBInformer.get_dns_address_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.ELBInformer.get_dns_address_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use a socket library DNS call to get the address for dns_name.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="boogio.aws_informer.EMRInformer">
+<em class="property">class </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">EMRInformer</code><span class="sig-paren">(</span><em>resource</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#EMRInformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.EMRInformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.aws_informer.AWSInformer" title="boogio.aws_informer.AWSInformer"><code class="xref py py-class docutils literal"><span class="pre">boogio.aws_informer.AWSInformer</span></code></a></p>
+<p>Manage selected information for an EMR resource.</p>
+<dl class="method">
+<dt id="boogio.aws_informer.EMRInformer.expand">
+<code class="descname">expand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#EMRInformer.expand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.EMRInformer.expand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch selected entity details.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="boogio.aws_informer.IAMInformer">
+<em class="property">class </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">IAMInformer</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#IAMInformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.IAMInformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.aws_informer.AWSInformer" title="boogio.aws_informer.AWSInformer"><code class="xref py py-class docutils literal"><span class="pre">boogio.aws_informer.AWSInformer</span></code></a></p>
+<p>Manage selected information for an Elastic IP resource.</p>
+<p>IAMInformers have no resource, and store all their data in their
+supplementals. Typically only one IAMInformer need be instantiated
+for a given environment.</p>
+<dl class="method">
+<dt id="boogio.aws_informer.IAMInformer.expand">
+<code class="descname">expand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#IAMInformer.expand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.IAMInformer.expand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch selected entity details.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_informer.IAMInformer.request_for_method_response_for_originator">
+<code class="descname">request_for_method_response_for_originator</code><span class="sig-paren">(</span><em>originator</em>, <em>origin_id_key</em>, <em>client_method</em>, <em>response_data_keys</em>, <em>method_id_key=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#IAMInformer.request_for_method_response_for_originator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.IAMInformer.request_for_method_response_for_originator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the request parameters dict for one request.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_informer.IAMInformer.update_originator_with_response">
+<code class="descname">update_originator_with_response</code><span class="sig-paren">(</span><em>origin_index</em>, <em>origin_id_key</em>, <em>request_response_err</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#IAMInformer.update_originator_with_response"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.IAMInformer.update_originator_with_response" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the appropriate originator with data from one response.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="boogio.aws_informer.InternetGatewayInformer">
+<em class="property">class </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">InternetGatewayInformer</code><span class="sig-paren">(</span><em>resource</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#InternetGatewayInformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.InternetGatewayInformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.aws_informer.AWSInformer" title="boogio.aws_informer.AWSInformer"><code class="xref py py-class docutils literal"><span class="pre">boogio.aws_informer.AWSInformer</span></code></a></p>
+<p>Manage information retrieval for an Internet Gateway resource.</p>
+<dl class="method">
+<dt id="boogio.aws_informer.InternetGatewayInformer.expand">
+<code class="descname">expand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#InternetGatewayInformer.expand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.InternetGatewayInformer.expand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch selected entity details.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="boogio.aws_informer.NatGatewayInformer">
+<em class="property">class </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">NatGatewayInformer</code><span class="sig-paren">(</span><em>resource</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#NatGatewayInformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.NatGatewayInformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.aws_informer.AWSInformer" title="boogio.aws_informer.AWSInformer"><code class="xref py py-class docutils literal"><span class="pre">boogio.aws_informer.AWSInformer</span></code></a></p>
+<p>Manage information retrieval for a NAT Gateway resource.</p>
+<dl class="method">
+<dt id="boogio.aws_informer.NatGatewayInformer.expand">
+<code class="descname">expand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#NatGatewayInformer.expand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.NatGatewayInformer.expand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch selected entity details.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="boogio.aws_informer.NetworkAclInformer">
+<em class="property">class </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">NetworkAclInformer</code><span class="sig-paren">(</span><em>resource</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#NetworkAclInformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.NetworkAclInformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.aws_informer.AWSInformer" title="boogio.aws_informer.AWSInformer"><code class="xref py py-class docutils literal"><span class="pre">boogio.aws_informer.AWSInformer</span></code></a></p>
+<p>Manage selected information for an EC2 Network ACL resource.</p>
+<dl class="method">
+<dt id="boogio.aws_informer.NetworkAclInformer.expand">
+<code class="descname">expand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#NetworkAclInformer.expand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.NetworkAclInformer.expand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch selected entity details.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="boogio.aws_informer.NetworkInterfaceInformer">
+<em class="property">class </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">NetworkInterfaceInformer</code><span class="sig-paren">(</span><em>resource</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#NetworkInterfaceInformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.NetworkInterfaceInformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.aws_informer.AWSInformer" title="boogio.aws_informer.AWSInformer"><code class="xref py py-class docutils literal"><span class="pre">boogio.aws_informer.AWSInformer</span></code></a></p>
+<p>Manage selected information for an EC2 Network Interface resource.</p>
+<dl class="attribute">
+<dt id="boogio.aws_informer.NetworkInterfaceInformer.attach_datetime">
+<code class="descname">attach_datetime</code><a class="headerlink" href="#boogio.aws_informer.NetworkInterfaceInformer.attach_datetime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the original datetime type attach time.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_informer.NetworkInterfaceInformer.expand">
+<code class="descname">expand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#NetworkInterfaceInformer.expand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.NetworkInterfaceInformer.expand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch selected entity details.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="boogio.aws_informer.NetworkInterfaceInformer.timestamp_format">
+<code class="descname">timestamp_format</code><em class="property"> = '%Y-%m-%d %H:%M:%S+00:00'</em><a class="headerlink" href="#boogio.aws_informer.NetworkInterfaceInformer.timestamp_format" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="boogio.aws_informer.RouteTableInformer">
+<em class="property">class </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">RouteTableInformer</code><span class="sig-paren">(</span><em>resource</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#RouteTableInformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.RouteTableInformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.aws_informer.AWSInformer" title="boogio.aws_informer.AWSInformer"><code class="xref py py-class docutils literal"><span class="pre">boogio.aws_informer.AWSInformer</span></code></a></p>
+<p>Manage selected information for Route Table resource.</p>
+<dl class="method">
+<dt id="boogio.aws_informer.RouteTableInformer.expand">
+<code class="descname">expand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#RouteTableInformer.expand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.RouteTableInformer.expand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch selected entity details.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="boogio.aws_informer.SQSInformer">
+<em class="property">class </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">SQSInformer</code><span class="sig-paren">(</span><em>resource</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#SQSInformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.SQSInformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.aws_informer.AWSInformer" title="boogio.aws_informer.AWSInformer"><code class="xref py py-class docutils literal"><span class="pre">boogio.aws_informer.AWSInformer</span></code></a></p>
+<p>Manage selected information for a SQS resource.</p>
+<dl class="method">
+<dt id="boogio.aws_informer.SQSInformer.expand">
+<code class="descname">expand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#SQSInformer.expand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.SQSInformer.expand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch selected entity details.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="boogio.aws_informer.SQSInformer.get_subscribed_sns_topic_regions">
+<code class="descname">get_subscribed_sns_topic_regions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#SQSInformer.get_subscribed_sns_topic_regions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.SQSInformer.get_subscribed_sns_topic_regions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the SNS topic regions in the instance&#8217;s subscribed topics.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="boogio.aws_informer.SecurityGroupInformer">
+<em class="property">class </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">SecurityGroupInformer</code><span class="sig-paren">(</span><em>resource</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#SecurityGroupInformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.SecurityGroupInformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.aws_informer.AWSInformer" title="boogio.aws_informer.AWSInformer"><code class="xref py py-class docutils literal"><span class="pre">boogio.aws_informer.AWSInformer</span></code></a></p>
+<p>Manage selected information for a SecurityGroup resource.</p>
+<dl class="method">
+<dt id="boogio.aws_informer.SecurityGroupInformer.expand">
+<code class="descname">expand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#SecurityGroupInformer.expand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.SecurityGroupInformer.expand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch selected entity details.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="boogio.aws_informer.SubnetInformer">
+<em class="property">class </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">SubnetInformer</code><span class="sig-paren">(</span><em>resource</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#SubnetInformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.SubnetInformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.aws_informer.AWSInformer" title="boogio.aws_informer.AWSInformer"><code class="xref py py-class docutils literal"><span class="pre">boogio.aws_informer.AWSInformer</span></code></a></p>
+<p>Manage selected information for a Subnet resource.</p>
+<dl class="method">
+<dt id="boogio.aws_informer.SubnetInformer.expand">
+<code class="descname">expand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#SubnetInformer.expand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.SubnetInformer.expand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch selected entity details.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="boogio.aws_informer.VPCInformer">
+<em class="property">class </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">VPCInformer</code><span class="sig-paren">(</span><em>resource</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#VPCInformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.VPCInformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.aws_informer.AWSInformer" title="boogio.aws_informer.AWSInformer"><code class="xref py py-class docutils literal"><span class="pre">boogio.aws_informer.AWSInformer</span></code></a></p>
+<p>Manage selected information for a VPC resource.</p>
+<dl class="method">
+<dt id="boogio.aws_informer.VPCInformer.expand">
+<code class="descname">expand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#VPCInformer.expand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.VPCInformer.expand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch selected entity details.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="boogio.aws_informer.VpcPeeringConnectionInformer">
+<em class="property">class </em><code class="descclassname">boogio.aws_informer.</code><code class="descname">VpcPeeringConnectionInformer</code><span class="sig-paren">(</span><em>resource</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#VpcPeeringConnectionInformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.VpcPeeringConnectionInformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#boogio.aws_informer.AWSInformer" title="boogio.aws_informer.AWSInformer"><code class="xref py py-class docutils literal"><span class="pre">boogio.aws_informer.AWSInformer</span></code></a></p>
+<p>Manage information retrieval for a VPC Peering Connection resource.</p>
+<dl class="method">
+<dt id="boogio.aws_informer.VpcPeeringConnectionInformer.expand">
+<code class="descname">expand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#VpcPeeringConnectionInformer.expand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.VpcPeeringConnectionInformer.expand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch selected entity details.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.aws_informer.entity_types">
+<code class="descclassname">boogio.aws_informer.</code><code class="descname">entity_types</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#entity_types"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.entity_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of entity types that have AWSInformer classes.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.aws_informer.get_one_request">
+<code class="descclassname">boogio.aws_informer.</code><code class="descname">get_one_request</code><span class="sig-paren">(</span><em>request</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#get_one_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.get_one_request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle one parallelized request.</p>
+<p>This gets called in a subprocess, and has to reconstruct the
+session and client. All of the execution is wrapped in a broad
+&#8220;try...except Exception&#8221; block because exceptions in subprocesses
+breaks multiprocessing and leaves things hung.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.aws_informer.get_paged_data">
+<code class="descclassname">boogio.aws_informer.</code><code class="descname">get_paged_data</code><span class="sig-paren">(</span><em>func</em>, <em>data_keys</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#get_paged_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.get_paged_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pull paged data from AWS until all pages are retrieved.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>func</strong> (<em>function</em>) &#8211; The function that will be called to retrieve data pages.</li>
+<li><strong>data_keys</strong> (<em>str</em><em> or </em><em>list of str</em>) &#8211; A list of strings specifying the item keys to be extracted
+from each page of data.</li>
+<li><strong>*args</strong> &#8211; Arbitrary positional arguments.</li>
+<li><strong>**kwargs</strong> &#8211; Arbitrary keyword arguments.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This method is used in subprocesses by <code class="docutils literal"><span class="pre">get_one_request</span></code> to
+retrieve potentially paged data from an AWS access function. The
+<code class="docutils literal"><span class="pre">*args</span></code> and <code class="docutils literal"><span class="pre">**kwargs</span></code> arguments are passed to the <code class="docutils literal"><span class="pre">func</span></code>
+argument when it&#8217;s called.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.aws_informer.informer_class">
+<code class="descclassname">boogio.aws_informer.</code><code class="descname">informer_class</code><span class="sig-paren">(</span><em>etype</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#informer_class"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.informer_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map entity type to the AWSInformer class name.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.aws_informer.informer_entity_type">
+<code class="descclassname">boogio.aws_informer.</code><code class="descname">informer_entity_type</code><span class="sig-paren">(</span><em>iclass</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#informer_entity_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.informer_entity_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map AWSInformer class to entity type.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.aws_informer.regional_types">
+<code class="descclassname">boogio.aws_informer.</code><code class="descname">regional_types</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#regional_types"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.regional_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the Informer entity types with instances in each region.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.aws_informer.regionless_types">
+<code class="descclassname">boogio.aws_informer.</code><code class="descname">regionless_types</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#regionless_types"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.regionless_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the Informer entity types with instances not tied to a region.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.aws_informer.rekey">
+<code class="descclassname">boogio.aws_informer.</code><code class="descname">rekey</code><span class="sig-paren">(</span><em>current</em>, <em>new_key_map</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#rekey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.rekey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the keys in a dictionary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>current</strong> (<em>dict</em>) &#8211; A dictionary whose keys are to be changed.</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>new_key_map (dict):</dt>
+<dd>A dictionary whose keys are the <em>old</em> keys and whose values
+are the <em>new</em> keys.</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;this&#39;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span> <span class="s1">&#39;that&#39;</span><span class="p">:</span> <span class="mi">99</span><span class="p">,</span> <span class="s1">&#39;another&#39;</span><span class="p">:</span> <span class="mi">64</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_keys</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;this&#39;</span><span class="p">:</span> <span class="s1">&#39;these&#39;</span><span class="p">,</span> <span class="s1">&#39;that&#39;</span><span class="p">:</span> <span class="s1">&#39;those&#39;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rekey</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">new_keys</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span>
+<span class="go">{&#39;these&#39;: 42, &#39;those&#39;: 99, &#39;another&#39;: 64}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="boogio.aws_informer.unitary_types">
+<code class="descclassname">boogio.aws_informer.</code><code class="descname">unitary_types</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/boogio/aws_informer.html#unitary_types"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#boogio.aws_informer.unitary_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the Informer entity types with a unique instance.</p>
+</dd></dl>
+
 </div>
 
 

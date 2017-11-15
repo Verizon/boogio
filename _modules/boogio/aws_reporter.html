@@ -133,10 +133,22 @@
            <div itemprop="articleBody">
             
   <h1>Source code for boogio.aws_reporter</h1><div class="highlight"><pre>
-<span></span><span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
-<span class="c1"># (c) Verizon Inc. 2015</span>
-<span class="c1"># Author: Scott Brown</span>
-<span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
+<span></span><span class="c1"># ----------------------------------------------------------------------------</span>
+<span class="c1"># Copyright (C) 2017 Verizon.  All Rights Reserved.</span>
+<span class="c1">#</span>
+<span class="c1">#   Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1">#   you may not use this file except in compliance with the License.</span>
+<span class="c1">#   You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#       http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1">#   Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1">#   distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1">#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1">#   See the License for the specific language governing permissions and</span>
+<span class="c1">#   limitations under the License.</span>
+<span class="c1">#</span>
+<span class="c1"># ----------------------------------------------------------------------------</span>
 
 <span class="sd">&#39;&#39;&#39;Report information from collections of ``AWSInformer`` instances.</span>
 
@@ -278,7 +290,6 @@
 
 <span class="sd">&#39;&#39;&#39;</span>
 
-<span class="c1"># import boto3</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -293,10 +304,9 @@
         <span class="k">def</span> <span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
             <span class="k">pass</span>
 
-<span class="c1"># from boogio import aws_informer</span>
-<span class="kn">from</span> <span class="nn">utensils</span> <span class="k">import</span> <span class="n">flatten</span>
-<span class="kn">from</span> <span class="nn">utensils</span> <span class="k">import</span> <span class="n">prune</span>
-<span class="kn">from</span> <span class="nn">utensils</span> <span class="k">import</span> <span class="n">tabulizer</span>
+<span class="kn">from</span> <span class="nn">boogio.utensils</span> <span class="k">import</span> <span class="n">flatten</span>
+<span class="kn">from</span> <span class="nn">boogio.utensils</span> <span class="k">import</span> <span class="n">prune</span>
+<span class="kn">from</span> <span class="nn">boogio.utensils</span> <span class="k">import</span> <span class="n">tabulizer</span>
 
 <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">NullHandler</span><span class="p">())</span>
 
@@ -342,9 +352,7 @@
             <span class="n">default_column_order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">default_path_to_none</span><span class="o">=</span><span class="kc">True</span>
             <span class="p">):</span>  <span class="c1"># pylint: disable=bad-continuation</span>
-        <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Initialize a ReportDefinition instance.</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="sd">&#39;&#39;&#39;Initialize a ReportDefinition instance.&#39;&#39;&#39;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">entity_type</span> <span class="o">=</span> <span class="n">entity_type</span>
@@ -362,13 +370,12 @@
     <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">prune_specs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;ReportDefinition prune_specs property.</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="sd">&#39;&#39;&#39;The ReportDefinition prune_specs property.&#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prune_specs</span>
 
     <span class="nd">@prune_specs</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">prune_specs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;ReportDefinition prune_specs property.</span>
+        <span class="sd">&#39;&#39;&#39;The ReportDefinition prune_specs property.</span>
 
 <span class="sd">        Ensure that path_to_none is properly set.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -380,9 +387,7 @@
 
     <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
 <div class="viewcode-block" id="ReportDefinition.copy"><a class="viewcode-back" href="../../boogio.aws_reporter.html#boogio.aws_reporter.ReportDefinition.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Return a copy of a ReportDefinition instance.</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="sd">&#39;&#39;&#39;Return a copy of a ReportDefinition instance.&#39;&#39;&#39;</span>
 
         <span class="n">copied</span> <span class="o">=</span> <span class="n">ReportDefinition</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
@@ -460,8 +465,7 @@
             <span class="n">packaged_report_definitions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">report_definitions</span><span class="o">=</span><span class="kc">None</span>
             <span class="p">):</span>  <span class="c1"># pylint: disable=bad-continuation</span>
-        <span class="sd">&#39;&#39;&#39;Initialize an AWSReporter instance.</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="sd">&#39;&#39;&#39;Initialize an AWSReporter instance.&#39;&#39;&#39;</span>
 
         <span class="c1"># This may be superfluous, but it makes the attribute visible.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_report_definitions</span> <span class="o">=</span> <span class="p">[]</span>
@@ -493,8 +497,7 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="p">[</span>
             <span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_report_definitions</span>
-            <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">names</span>
-            <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">names</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
             <span class="p">]</span></div>
 
     <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
@@ -580,8 +583,7 @@
 
         <span class="n">combined_definitions</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">report_definitions</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">report_names</span>
-            <span class="ow">or</span> <span class="n">report_names</span> <span class="o">==</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">report_names</span> <span class="ow">or</span> <span class="n">report_names</span> <span class="o">==</span> <span class="p">[]</span>
             <span class="p">]</span>
 
         <span class="n">combined_definitions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">report_definitions</span><span class="p">)</span>
@@ -892,7 +894,6 @@
             <span class="n">surveyors</span><span class="o">=</span><span class="n">surveyors</span><span class="p">,</span>
             <span class="n">report_name</span><span class="o">=</span><span class="n">report_name</span><span class="p">,</span>
             <span class="n">report_definition</span><span class="o">=</span><span class="n">report_definition</span><span class="p">,</span>
-            <span class="c1"># include_headers=True,</span>
             <span class="n">separator</span><span class="o">=</span><span class="s1">&#39;,&#39;</span>
             <span class="p">)</span></div>
 
@@ -919,7 +920,6 @@
             <span class="n">surveyors</span><span class="o">=</span><span class="n">surveyors</span><span class="p">,</span>
             <span class="n">report_name</span><span class="o">=</span><span class="n">report_name</span><span class="p">,</span>
             <span class="n">report_definition</span><span class="o">=</span><span class="n">report_definition</span><span class="p">,</span>
-            <span class="c1"># include_headers=True,</span>
             <span class="n">separator</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span>
             <span class="p">)</span></div>
 
@@ -1272,10 +1272,10 @@
             <span class="n">report_definition</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span>
             <span class="p">):</span>  <span class="c1"># pylint: disable=bad-continuation</span>
-        <span class="sd">&#39;&#39;&#39;Write a tab separated report to a specified file.</span>
+        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;Write a tab separated report to a specified file.</span>
 
 <span class="sd">        This method is a pseudonym for ``write_sv()``</span>
-<span class="sd">        with ``separator=&#39;\\t&#39;``. See the documentation for</span>
+<span class="sd">        with ``separator=&#39;\t&#39;``. See the documentation for</span>
 <span class="sd">        ``write_sv()`` for details on arguments and exceptions.</span>
 
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -1344,52 +1344,6 @@
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fptr</span><span class="p">:</span>
             <span class="n">fptr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">report_json</span><span class="p">)</span></div></div>
-
-
-    <span class="c1"># # - - - - - - - - - - - - - - - - - - - - - - - - - - - -</span>
-    <span class="c1"># def write_report(</span>
-    <span class="c1">#         self,</span>
-    <span class="c1">#         report_format,</span>
-    <span class="c1">#         output_path,</span>
-    <span class="c1">#         informers=None,</span>
-    <span class="c1">#         surveyors=None,</span>
-    <span class="c1">#         report_names=None,</span>
-    <span class="c1">#         report_definitions=None,</span>
-    <span class="c1">#         flat=True,</span>
-    <span class="c1">#         overwrite=False</span>
-    <span class="c1">#         ):  # pylint: disable=bad-continuation</span>
-    <span class="c1">#     &#39;&#39;&#39;Write a report in a specified format to a specified file.</span>
-
-    <span class="c1">#     Arguments:</span>
-
-    <span class="c1">#         report_format (&#39;csv&#39;, &#39;tsv&#39;, or &#39;json&#39;):</span>
-    <span class="c1">#             The format to write out.</span>
-
-    <span class="c1">#         output_path (string):</span>
-    <span class="c1">#             The path to the resulting output file.</span>
-
-    <span class="c1">#         overwrite (bool, default=False):</span>
-    <span class="c1">#             If ``True``, overwrite any existing file already</span>
-    <span class="c1">#             present.</span>
-
-    <span class="c1">#     Raises:</span>
-
-    <span class="c1">#         ValueError: If ``overwrite`` is ``False`` and a file</span>
-    <span class="c1">#             already exists at the location specified by</span>
-    <span class="c1">#             ``output_path``.</span>
-
-    <span class="c1">#         ValueError: If ``flat`` is ``False`` and the report</span>
-    <span class="c1">#             method for the format specified doesn&#39;t support</span>
-    <span class="c1">#             nested reports.</span>
-
-    <span class="c1">#     This method writes the result of the report method for the</span>
-    <span class="c1">#     specified format to an output file.</span>
-
-    <span class="c1">#     See the documentation for ``report()`` for details on other</span>
-    <span class="c1">#     arguments and exceptions.</span>
-
-    <span class="c1">#     &#39;&#39;&#39;</span>
-    <span class="c1">#     raise NotImplementedError</span>
 </pre></div>
 
            </div>
