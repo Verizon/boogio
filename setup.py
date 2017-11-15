@@ -25,7 +25,7 @@ setup(
     description="AWS records retrieval tools",
     author="Scott Brown",
     author_email='scott.brown@one.verizon.com',
-    url="https://github.oncue.verizon.net/oss/boogio",
+    url="https://github.com/Verizon/boogio",
     packages=find_packages(exclude=['test_*']),
     package_data={
         '': [
