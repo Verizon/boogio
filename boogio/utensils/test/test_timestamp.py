@@ -19,7 +19,7 @@
 
 import unittest
 
-from utensils import timestamp
+from boogio.utensils import timestamp
 
 from datetime import timedelta
 from datetime import datetime

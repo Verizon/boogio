@@ -77,7 +77,7 @@ import boto3
 import botocore
 
 from boogio import site_boogio
-from utensils import flatten
+from boogio.utensils import flatten
 # from utensils import prune
 
 logging.getLogger(__name__).addHandler(NullHandler())

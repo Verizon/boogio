@@ -101,7 +101,7 @@ except ImportError:
             pass
 
 # import itertools
-from utensils import flatten
+from boogio.utensils import flatten
 
 logging.getLogger(__name__).addHandler(NullHandler())
 

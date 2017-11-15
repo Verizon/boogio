@@ -19,7 +19,7 @@
 
 import unittest
 
-from utensils import cidr_tools
+from boogio.utensils import cidr_tools
 UNIVERSAL_CIDR = cidr_tools.UNIVERSAL_CIDR
 
 

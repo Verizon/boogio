@@ -23,8 +23,8 @@ import itertools
 
 import unittest
 
-from utensils import prune
-# from utensils import flatten
+from boogio.utensils import prune
+# from boogio.utensils import flatten
 
 # test data
 import world_structure

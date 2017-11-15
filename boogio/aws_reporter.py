@@ -169,9 +169,9 @@ except ImportError:
         def emit(self, record):
             pass
 
-from utensils import flatten
-from utensils import prune
-from utensils import tabulizer
+from boogio.utensils import flatten
+from boogio.utensils import prune
+from boogio.utensils import tabulizer
 
 logging.getLogger(__name__).addHandler(NullHandler())
 
@@ -217,9 +217,7 @@ class ReportDefinition(object):
             default_column_order=None,
             default_path_to_none=True
             ):  # pylint: disable=bad-continuation
-        '''
-        Initialize a ReportDefinition instance.
-        '''
+        '''Initialize a ReportDefinition instance.'''
 
         self.name = name
         self.entity_type = entity_type
@@ -237,13 +235,12 @@ class ReportDefinition(object):
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     @property
     def prune_specs(self):
-        '''ReportDefinition prune_specs property.
-        '''
+        '''The ReportDefinition prune_specs property.'''
         return self._prune_specs
 
     @prune_specs.setter
     def prune_specs(self, value):
-        '''ReportDefinition prune_specs property.
+        '''The ReportDefinition prune_specs property.
 
         Ensure that path_to_none is properly set.
         '''
@@ -255,9 +252,7 @@ class ReportDefinition(object):
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     def copy(self):
-        '''
-        Return a copy of a ReportDefinition instance.
-        '''
+        '''Return a copy of a ReportDefinition instance.'''
 
         copied = ReportDefinition(
             name=self.name,
@@ -335,8 +330,7 @@ class AWSReporter(object):
             packaged_report_definitions=False,
             report_definitions=None
             ):  # pylint: disable=bad-continuation
-        '''Initialize an AWSReporter instance.
-        '''
+        '''Initialize an AWSReporter instance.'''
 
         # This may be superfluous, but it makes the attribute visible.
         self._report_definitions = []
@@ -368,8 +362,7 @@ class AWSReporter(object):
         '''
         return [
             d for d in self._report_definitions
-            if d.name in names
-            or len(names) == 0
+            if d.name in names or len(names) == 0
             ]
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -455,8 +448,7 @@ class AWSReporter(object):
 
         combined_definitions = [
             r for r in self.report_definitions()
-            if r.name in report_names
-            or report_names == []
+            if r.name in report_names or report_names == []
             ]
 
         combined_definitions.extend(report_definitions)
@@ -1145,10 +1137,10 @@ class AWSReporter(object):
             report_definition=None,
             overwrite=False
             ):  # pylint: disable=bad-continuation
-        '''Write a tab separated report to a specified file.
+        r'''Write a tab separated report to a specified file.
 
         This method is a pseudonym for ``write_sv()``
-        with ``separator='\\t'``. See the documentation for
+        with ``separator='\t'``. See the documentation for
         ``write_sv()`` for details on arguments and exceptions.
 
         '''

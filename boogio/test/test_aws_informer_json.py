@@ -27,7 +27,7 @@ import json
 
 from boogio import aws_informer
 from boogio import site_boogio
-from utensils import flatten
+from boogio.utensils import flatten
 
 # Sharing this will mean reducing fetch time when the same resources are needed
 # in multiple test cases.

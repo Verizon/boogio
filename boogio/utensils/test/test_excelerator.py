@@ -27,7 +27,7 @@ import json
 import os
 import tempfile
 
-from utensils import excelerator
+from boogio.utensils import excelerator
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

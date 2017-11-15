@@ -23,7 +23,7 @@ import json
 import os
 import tempfile
 
-from utensils import tabulizer
+from boogio.utensils import tabulizer
 
 import xlsxwriter
 

@@ -40,5 +40,6 @@ setup(
         "botocore",
         "jsonschema",
         "PyYAML",
+        "xlsxwriter",
         ]
     )

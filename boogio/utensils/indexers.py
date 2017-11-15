@@ -30,7 +30,7 @@ except ImportError:
             '''Dummy docstring for flake8.'''
             pass
 
-from utensils import prune
+from boogio.utensils import prune
 
 logging.getLogger(__name__).addHandler(NullHandler())
 

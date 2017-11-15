@@ -22,8 +22,13 @@ import unittest
 from boogio.aws_surveyor import AWSSurveyor
 from boogio.helpers import cidr_catalog_helper
 from boogio import site_boogio
-from carto import cidr_catalog
-from utensils import prune
+try:
+    from carto import cidr_catalog
+    CARTO_IMPORTED = True
+except ImportError:
+    CARTO_IMPORTED = False
+
+from boogio.utensils import prune
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Uncomment to show lower level logging statements.
@@ -39,6 +44,7 @@ TEST_CATALOG = 'sample_cidr_catalog.json'
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+@unittest.skipIf(not CARTO_IMPORTED, "The carto module is required.")
 class TestHelperForSecurityGroupInformer(unittest.TestCase):
     '''Basic test cases for CidrCatalogHelper with a SecurityGroupInformer.'''
 

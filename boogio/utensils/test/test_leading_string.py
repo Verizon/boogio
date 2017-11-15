@@ -19,8 +19,8 @@
 
 import unittest
 
-# from utensils import leading_string
-from utensils.leading_string import index_by_common_leading_string
+# from boogio.utensils import leading_string
+from boogio.utensils.leading_string import index_by_common_leading_string
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

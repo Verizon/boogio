@@ -51,7 +51,7 @@
 import json
 import xlsxwriter
 
-from utensils import tabulizer
+from boogio.utensils import tabulizer
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

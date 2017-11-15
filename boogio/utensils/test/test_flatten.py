@@ -19,7 +19,7 @@
 
 import unittest
 
-from utensils import flatten
+from boogio.utensils import flatten
 
 
 def sorted(arr):

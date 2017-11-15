@@ -21,7 +21,7 @@ import unittest
 
 import json
 
-from utensils import indexers
+from boogio.utensils import indexers
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Uncomment to show lower level logging statements.

@@ -27,7 +27,7 @@ import xlsxwriter
 import boogio.aws_reporter as aws_reporter
 import boogio.aws_surveyor as aws_surveyor
 import boogio.report_definitions
-import utensils.tabulizer
+import boogio.utensils.tabulizer
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -2056,7 +2056,7 @@ class TestAWSReporterReportFormats(unittest.TestCase):
             )
 
         self.assertTrue(
-            isinstance(report, utensils.tabulizer.Tabulizer)
+            isinstance(report, boogio.utensils.tabulizer.Tabulizer)
             )
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -2083,7 +2083,7 @@ class TestAWSReporterReportFormats(unittest.TestCase):
             self.assertTrue(
                 isinstance(
                     reports[report_name],
-                    utensils.tabulizer.Tabulizer
+                    boogio.utensils.tabulizer.Tabulizer
                     )
                 )
 

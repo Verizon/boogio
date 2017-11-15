@@ -85,7 +85,8 @@ class Tabulizer(object):
         # What to use when a value is needed and no value is available.
         self.placeholder = None
 
-        self.data = list(data)
+        # self.data = list(data)
+        self.data = data
 
         # - - - - - - - - - - - - - - - - - - - -
         if headers:
